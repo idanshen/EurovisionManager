@@ -110,6 +110,73 @@ depend:
 	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
+#=============================================================================
+# Target rules for targets named Eurovision
+
+# Build rule for target.
+Eurovision: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Eurovision
+.PHONY : Eurovision
+
+# fast build rule for target.
+Eurovision/fast:
+	$(MAKE) -f CMakeFiles/Eurovision.dir/build.make CMakeFiles/Eurovision.dir/build
+.PHONY : Eurovision/fast
+
+eurovision.o: eurovision.c.o
+
+.PHONY : eurovision.o
+
+# target to build an object file
+eurovision.c.o:
+	$(MAKE) -f CMakeFiles/Eurovision.dir/build.make CMakeFiles/Eurovision.dir/eurovision.c.o
+.PHONY : eurovision.c.o
+
+eurovision.i: eurovision.c.i
+
+.PHONY : eurovision.i
+
+# target to preprocess a source file
+eurovision.c.i:
+	$(MAKE) -f CMakeFiles/Eurovision.dir/build.make CMakeFiles/Eurovision.dir/eurovision.c.i
+.PHONY : eurovision.c.i
+
+eurovision.s: eurovision.c.s
+
+.PHONY : eurovision.s
+
+# target to generate assembly for a file
+eurovision.c.s:
+	$(MAKE) -f CMakeFiles/Eurovision.dir/build.make CMakeFiles/Eurovision.dir/eurovision.c.s
+.PHONY : eurovision.c.s
+
+main.o: main.c.o
+
+.PHONY : main.o
+
+# target to build an object file
+main.c.o:
+	$(MAKE) -f CMakeFiles/Eurovision.dir/build.make CMakeFiles/Eurovision.dir/main.c.o
+.PHONY : main.c.o
+
+main.i: main.c.i
+
+.PHONY : main.i
+
+# target to preprocess a source file
+main.c.i:
+	$(MAKE) -f CMakeFiles/Eurovision.dir/build.make CMakeFiles/Eurovision.dir/main.c.i
+.PHONY : main.c.i
+
+main.s: main.c.s
+
+.PHONY : main.s
+
+# target to generate assembly for a file
+main.c.s:
+	$(MAKE) -f CMakeFiles/Eurovision.dir/build.make CMakeFiles/Eurovision.dir/main.c.s
+.PHONY : main.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -117,7 +184,14 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
+	@echo "... Eurovision"
 	@echo "... edit_cache"
+	@echo "... eurovision.o"
+	@echo "... eurovision.i"
+	@echo "... eurovision.s"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
 .PHONY : help
 
 

@@ -1,0 +1,1 @@
+C:/cygwin64/bin/gcc.exe -g  -Wl,--enable-auto-import CMakeFiles/Eurovision.dir/eurovision.c.o CMakeFiles/Eurovision.dir/main.c.o  -o Eurovision.exe -Wl,--out-implib,libEurovision.dll.a -Wl,--major-image-version,0,--minor-image-version,0 
