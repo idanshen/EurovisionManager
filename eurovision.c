@@ -22,7 +22,7 @@ typedef struct state_t{
 typedef struct judge_t{
     int ID;
     char* name;
-    int votes[10];
+    int* votes;
 }*Judge;
 
 //functions needed for judges map
@@ -100,8 +100,35 @@ static bool checkIfStateExists(Map states,int* ID){
         return true;
     }
     return false;
-
 }
+
+static bool checkIfJudgeExists(Map judges,int* ID){
+    if(mapGet(judges,&ID)){
+        return true;
+    }
+    return false;
+}
+
+/**
+ * checkName - check if the name contains only lowercase letters and spaces
+ * @param name -
+ * 	the name to validate
+ * @return
+ *  True if the name contains only lowercase letters and spaces
+ *  False otherwise
+ */
+static bool checkName(const char* name){
+    bool flag = true;
+    for (int i = 0; i<strlen(name); i++){
+        if ((name[i] < 'a') || (name[i] > 'z')){
+            if (name[i] != ' '){
+                flag = false;
+            }
+        }
+    }
+    return flag;
+}
+
 static EurovisionResult updateStatesVoteMaps(Map states,int Id,
         State new_state){
     int i=0;
@@ -119,6 +146,39 @@ static EurovisionResult updateStatesVoteMaps(Map states,int Id,
 
 
 }
+
+static Judge createJudge(int judgeId, const char *judgeName, int *judgeResults){
+    Judge new_judge=malloc(sizeof(*new_judge));
+    if(new_judge==NULL){
+        return NULL;
+    }
+
+    int name_len=(int)strlen(judgeName);
+    char * new_name=malloc(sizeof(*new_name)*name_len+1);
+    if(new_name==NULL){
+        return NULL;
+    }
+    strcpy(new_name,judgeName);
+
+    int * results=malloc(sizeof(int)*10);
+    if(results==NULL){
+        return NULL;
+    }
+    for (int i=0; i<10;i++){
+        results[i] = judgeResults[i];
+    }
+    new_judge->ID = judgeId;
+    new_judge->name = new_name;
+    new_judge->votes = results;
+    return new_judge;
+}
+
+static void deleteJudge(Judge judge){
+    free(judge->votes);
+    free(judge->name);
+    free(judge);
+}
+
 /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 EurovisionResult eurovisionAddState(Eurovision eurovision, int stateId,
@@ -157,4 +217,97 @@ EurovisionResult eurovisionAddState(Eurovision eurovision, int stateId,
     deleteState(new_state);
     return EUROVISION_SUCCESS;
 
+}
+
+
+EurovisionResult eurovisionAddJudge(Eurovision eurovision, int judgeId,
+                                    const char *judgeName,
+                                    int *judgeResults){
+    if(!eurovision||!judgeName||!judgeResults){
+        return EUROVISION_NULL_ARGUMENT;
+    }
+    if(judgeId<0){
+        return EUROVISION_INVALID_ID;
+    }
+    if(!checkName(judgeName)){
+        return EUROVISION_INVALID_NAME;
+    }
+    if(checkIfJudgeExists(eurovision->judges,&judgeId)){
+        return EUROVISION_JUDGE_ALREADY_EXIST;
+    }
+    Judge new_judge = createJudge(judgeId, judgeName,judgeResults);
+    if(!new_judge){
+        return EUROVISION_OUT_OF_MEMORY;
+    }
+    MapResult result = mapPut(eurovision->judges, &judgeId, new_judge);
+    if(result==MAP_OUT_OF_MEMORY) {
+        return EUROVISION_OUT_OF_MEMORY;
+    }
+    deleteJudge(new_judge);
+    return EUROVISION_SUCCESS;
+}
+
+EurovisionResult eurovisionRemoveJudge(Eurovision eurovision, int judgeId){
+    if(!eurovision){
+        return EUROVISION_NULL_ARGUMENT;
+    }
+    if(judgeId<0){
+        return EUROVISION_INVALID_ID;
+    }
+    MapResult result = mapRemove(eurovision->judges,&judgeId);
+    if (result == MAP_ITEM_DOES_NOT_EXIST){
+        return EUROVISION_JUDGE_NOT_EXIST;
+    }
+    else if (result == MAP_SUCCESS){
+        return EUROVISION_SUCCESS;
+    }
+}
+
+EurovisionResult eurovisionAddVote(Eurovision eurovision, int stateGiver,
+                                   int stateTaker){
+    if(!eurovision){
+        return EUROVISION_NULL_ARGUMENT;
+    }
+    if((stateGiver<0) || (stateTaker<0)){
+        return EUROVISION_INVALID_ID;
+    }
+    if (stateGiver==stateTaker){
+        return EUROVISION_SAME_STATE;
+    }
+    State giver_state = mapGet(eurovision->states,&stateGiver);
+    if (!giver_state){
+        return EUROVISION_STATE_NOT_EXIST;
+    }
+    int curr_vote = *(int*)mapGet(giver_state->votes,&stateTaker);
+    curr_vote++;
+    MapResult result = mapPut(giver_state->votes,&stateTaker, &curr_vote);
+    if (result==MAP_SUCCESS){ ////// what about other results?
+        return EUROVISION_SUCCESS;
+    }
+}
+
+
+EurovisionResult eurovisionRemoveVote(Eurovision eurovision, int stateGiver,
+                                      int stateTaker){
+    if(!eurovision){
+        return EUROVISION_NULL_ARGUMENT;
+    }
+    if((stateGiver<0) || (stateTaker<0)){
+        return EUROVISION_INVALID_ID;
+    }
+    if (stateGiver==stateTaker){
+        return EUROVISION_SAME_STATE;
+    }
+    State giver_state = mapGet(eurovision->states,&stateGiver);
+    if (!giver_state){
+        return EUROVISION_STATE_NOT_EXIST;
+    }
+    int curr_vote = *(int*)mapGet(giver_state->votes,&stateTaker);
+    if (curr_vote>0){
+        curr_vote--;
+    }
+    MapResult result = mapPut(giver_state->votes,&stateTaker, &curr_vote);
+    if (result==MAP_SUCCESS){ ////// what about other results?
+        return EUROVISION_SUCCESS;
+    }
 }
