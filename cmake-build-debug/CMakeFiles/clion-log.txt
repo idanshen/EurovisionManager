@@ -1,4 +1,0 @@
-C:\Users\User\.CLion2018.3\system\cygwin_cmake\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=C:/cygwin64/bin/gcc.exe -DCMAKE_CXX_COMPILER=C:/cygwin64/bin/g++.exe -G "CodeBlocks - Unix Makefiles" /cygdrive/c/Users/User/Documents/Spring2019/MATAM/HW1/Eurovision/EurovisionManager
--- Configuring done
--- Generating done
--- Build files have been written to: /cygdrive/c/Users/User/Documents/Spring2019/MATAM/HW1/Eurovision/EurovisionManager/cmake-build-debug

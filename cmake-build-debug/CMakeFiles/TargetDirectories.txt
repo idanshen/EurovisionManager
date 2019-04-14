@@ -1,3 +1,0 @@
-/cygdrive/c/Users/User/Documents/Spring2019/MATAM/HW1/Eurovision/EurovisionManager/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/cygdrive/c/Users/User/Documents/Spring2019/MATAM/HW1/Eurovision/EurovisionManager/cmake-build-debug/CMakeFiles/Eurovision.dir
-/cygdrive/c/Users/User/Documents/Spring2019/MATAM/HW1/Eurovision/EurovisionManager/cmake-build-debug/CMakeFiles/edit_cache.dir
