@@ -1,4 +1,5 @@
 #include "map.h"
+#include "judge.h"
 #include "eurovision.h"
 #include <stdlib.h>
 #include <assert.h>
@@ -6,6 +7,7 @@
 #include <stdbool.h>
 #include <string.h>
 ////????? do we need every declaration
+//TODO: declare ID as int
 
 struct eurovision_t{
     Map states;
@@ -19,49 +21,14 @@ typedef struct state_t{
     Map votes;
 }*State;
 
-typedef struct judge_t{
-    int ID;
-    char* name;
-    int* votes;
-}*Judge;
-
-//functions needed for judges map
-Judge copyJudge(Judge judge);
-int * copyJudgeID(int * id);
-Judge releaseJudge(Judge judge);
-int * releaseJudgeID(int * ID);
-
 //functions needed for states map
-Judge copyState(State state);
-int * copyStateID(int * id);
-Judge releaseState(State state);
-int * releaseStateID(int * ID);
+static Judge copyState(State state);
+static Judge releaseState(State state);
 
 //functions needed for states vote map
-int * copyVotes(int * votes);
-//int * copyStateID(int * id);
-Judge releaseVotes(int * votes);
-//int * releaseStateID(int * ID);
+static int * copyVotes(int * votes);
+static Judge releaseVotes(int * votes);
 
-Eurovision eurovisionCreate(){
-    Map judges_map=mapCreate(copyJudge,copyJudgeID,releaseJudge,releaseJudgeID);
-    if(judges_map==NULL){
-        return NULL;
-    }
-    Map states_map=mapCreate(copyState,copyStateID,releaseState,releaseStateID);
-    if(states_map==NULL){
-        return NULL;
-    }
-    Eurovision new_eurovision=malloc(sizeof(*new_eurovision));
-    if(new_eurovision==NULL){
-        return NULL;
-    }
-    new_eurovision->judges=judges_map;
-    new_eurovision->states=states_map;
-    return new_eurovision;
-}
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 static State createState(int stateId,const char* stateName
         ,const char* songName){
     State new_state=malloc(sizeof(*new_state));
@@ -95,18 +62,52 @@ static void deleteState(State state){
     return;
 
 }
-static bool checkIfStateExists(Map states,int* ID){
-    if(mapGet(states,&ID)){
-        return true;
+
+/**
+ * copyID - Function to be used for copying an ID as a key to the map
+ * @param n - ID to be copied
+ * @return
+ *   a copy of the given ID
+ */
+static MapKeyElement copyID(MapKeyElement n) {
+    if (!n) {
+        return NULL;
     }
-    return false;
+    int *copy = malloc(sizeof(*copy));
+    if (!copy) {
+        return NULL;
+    }
+    *copy = *(int *) n;
+    return copy;
 }
 
-static bool checkIfJudgeExists(Map judges,int* ID){
-    if(mapGet(judges,&ID)){
-        return true;
-    }
-    return false;
+/**
+ * releaseID - free the memorey occupied by a ID instance
+ * @param n - a ID instance to be released
+ */
+static void releaseID(MapKeyElement n) {
+    free(n);
+}
+
+/**
+ * compareIDs - Function to be used by the map for comparing IDs
+ * @param n1 - a ID to be compared
+ * @param n2 - a ID to be compared
+ * @return
+ *		A positive integer if the first element is greater;
+ * 		0 if they're equal;
+ *		A negative integer if the second element is greater.
+ */
+static int compareIDs(MapKeyElement n1, MapKeyElement n2) {
+    return (*(int *) n1 - *(int *) n2);
+}
+
+/**
+ * releaseJudge - free the memorey occupied by a Judge instance
+ * @param n - a Judge instance to be released
+ */
+static void releaseJudge(MapDataElement n) {
+    deleteJudge(n);
 }
 
 /**
@@ -143,44 +144,31 @@ static EurovisionResult updateStatesVoteMaps(Map states,int Id,
         }
     }
     return EUROVISION_SUCCESS;
-
-
-}
-
-static Judge createJudge(int judgeId, const char *judgeName, int *judgeResults){
-    Judge new_judge=malloc(sizeof(*new_judge));
-    if(new_judge==NULL){
-        return NULL;
-    }
-
-    int name_len=(int)strlen(judgeName);
-    char * new_name=malloc(sizeof(*new_name)*name_len+1);
-    if(new_name==NULL){
-        return NULL;
-    }
-    strcpy(new_name,judgeName);
-
-    int * results=malloc(sizeof(int)*10);
-    if(results==NULL){
-        return NULL;
-    }
-    for (int i=0; i<10;i++){
-        results[i] = judgeResults[i];
-    }
-    new_judge->ID = judgeId;
-    new_judge->name = new_name;
-    new_judge->votes = results;
-    return new_judge;
-}
-
-static void deleteJudge(Judge judge){
-    free(judge->votes);
-    free(judge->name);
-    free(judge);
 }
 
 /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
+
+Eurovision eurovisionCreate(){
+    Map judges_map=mapCreate(copyJudge,copyID,releaseJudge,releaseID,compareIDs);
+    if(judges_map==NULL){
+        return NULL;
+    }
+    Map states_map=mapCreate(copyState,copyID,releaseState,releaseID,compareIDs);
+    if(states_map==NULL){
+        return NULL;
+    }
+    Eurovision new_eurovision=malloc(sizeof(*new_eurovision));
+    if(new_eurovision==NULL){
+        return NULL;
+    }
+    new_eurovision->judges=judges_map;
+    new_eurovision->states=states_map;
+    return new_eurovision;
+}
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 EurovisionResult eurovisionAddState(Eurovision eurovision, int stateId,
                                     const char *stateName,
                                     const char *songName){
@@ -190,7 +178,7 @@ EurovisionResult eurovisionAddState(Eurovision eurovision, int stateId,
     if(stateId<0){
         return EUROVISION_INVALID_ID;
     }
-    if(checkIfStateExists(eurovision->states,&stateId)){
+    if(mapContains(eurovision->states,&stateId)){
         return EUROVISION_STATE_ALREADY_EXIST;
     }
     State new_state=createState(stateId,stateName,songName);
@@ -232,7 +220,7 @@ EurovisionResult eurovisionAddJudge(Eurovision eurovision, int judgeId,
     if(!checkName(judgeName)){
         return EUROVISION_INVALID_NAME;
     }
-    if(checkIfJudgeExists(eurovision->judges,&judgeId)){
+    if(mapContains(eurovision->judges,&judgeId)){
         return EUROVISION_JUDGE_ALREADY_EXIST;
     }
     Judge new_judge = createJudge(judgeId, judgeName,judgeResults);
