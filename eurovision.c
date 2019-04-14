@@ -14,7 +14,7 @@ struct eurovision_t{
     Map judges;
 };
 
-typedef struct state_t{
+typedef struct State_t{
     char* name;
     char* song;
     int ID;
@@ -103,11 +103,23 @@ static int compareIDs(MapKeyElement n1, MapKeyElement n2) {
 }
 
 /**
- * releaseJudge - free the memorey occupied by a Judge instance
+ * releaseJudge - free the memory occupied by a Judge instance
  * @param n - a Judge instance to be released
  */
 static void releaseJudge(MapDataElement n) {
-    deleteJudge(n);
+    judgeDelete(n);
+}
+
+/**
+ * copyJudge - helper function to wrap judgeCopy for map use
+ * @param judge - Target judge.
+ * @return
+ * 	NULL if a NULL was sent or a memory allocation failed.
+ * 	A Judge containing the same elements as judge otherwise.
+ */
+static MapDataElement copyJudge(MapDataElement judge){
+    Judge to_copy = (Judge)judge;
+    return (MapDataElement) judgeCopy(to_copy);
 }
 
 /**
@@ -223,7 +235,7 @@ EurovisionResult eurovisionAddJudge(Eurovision eurovision, int judgeId,
     if(mapContains(eurovision->judges,&judgeId)){
         return EUROVISION_JUDGE_ALREADY_EXIST;
     }
-    Judge new_judge = createJudge(judgeId, judgeName,judgeResults);
+    Judge new_judge = judgeCreate(judgeId, judgeName,judgeResults);
     if(!new_judge){
         return EUROVISION_OUT_OF_MEMORY;
     }
@@ -231,7 +243,7 @@ EurovisionResult eurovisionAddJudge(Eurovision eurovision, int judgeId,
     if(result==MAP_OUT_OF_MEMORY) {
         return EUROVISION_OUT_OF_MEMORY;
     }
-    deleteJudge(new_judge);
+    judgeDelete(new_judge);
     return EUROVISION_SUCCESS;
 }
 

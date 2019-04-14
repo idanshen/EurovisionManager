@@ -6,24 +6,30 @@
 
 
 /** Type for defining the judge */
-typedef struct judge_t{
+typedef struct Judge_t{
     int ID;
     char* name;
     int* votes;
 };
 
 
-void deleteJudge(Judge judge){
+void judgeDelete(Judge judge){
     free(judge->votes);
     free(judge->name);
     free(judge);
 }
 
-Judge createJudge(int judgeId, const char *judgeName, int *judgeResults){
+Judge judgeCreate(int judgeId, const char *judgeName, int *judgeResults){
     Judge new_judge=malloc(sizeof(new_judge));
     if(new_judge==NULL){
         return NULL;
     }
+
+    int *id = malloc(sizeof(int));
+    if (!id) {
+        return NULL;
+    }
+    *id = judgeId;
 
     int name_len=(int)strlen(judgeName);
     char * new_name=malloc(sizeof(*new_name)*name_len+1);
@@ -45,9 +51,13 @@ Judge createJudge(int judgeId, const char *judgeName, int *judgeResults){
     return new_judge;
 }
 
-Judge copyJudge(Judge judge){
+Judge judgeCopy(Judge judge){
     if(!judge) {
         return NULL;
     }
-    /////// to finish
+    int id_ptr = judge->ID;
+    char* name_ptr = judge->name;
+    int* results_ptr = judge->votes;
+    Judge new_judge = judgeCreate(id_ptr,name_ptr,results_ptr);
+    return new_judge;
 }
