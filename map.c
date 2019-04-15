@@ -74,9 +74,16 @@ bool mapContains(Map map, MapKeyElement element){
         return false;
     }
     Node first_node=map->base;
+    if (!map->base){
+        return false;
+    }
     MapKeyElement current_key=first_node->key;
+    if((map->compareKey(current_key,element))==0){
+        return true;
+    }
     Node next_node=first_node->next;
     while(next_node!=NULL){
+        current_key=next_node->key;
         if((map->compareKey(current_key,element))==0){
             return true;
         }
@@ -211,12 +218,24 @@ MapResult mapRemove(Map map, MapKeyElement keyElement){
     if((!keyElement) || (!map)){
         return MAP_NULL_ARGUMENT;
     }
+    if (map->compareKey(map->base->key, keyElement)==0){
+        map->freeKey(map->base->key);
+        map->freeData(map->base->data);
+        Node temp_pointer = map->base->next;
+        free(map->base);
+        map->base = temp_pointer;
+        return MAP_SUCCESS;
+    }
     MAP_FOREACH(MapKeyElement, iterator, map){
-        if (map->compareKey(map->node_iterator->next->key, keyElement)==0){
-            map->freeKey(map->node_iterator->next->key);
-            map->freeData(map->node_iterator->next->data);
-            free(map->node_iterator->next);
-            map->node_iterator->next = map->node_iterator->next->next;
+        if(map->node_iterator->next){
+            if (map->compareKey(map->node_iterator->next->key, keyElement)==0){
+                map->freeKey(map->node_iterator->next->key);
+                map->freeData(map->node_iterator->next->data);
+                Node temp_pointer = map->node_iterator->next->next;
+                free(map->node_iterator->next);
+                map->node_iterator->next = temp_pointer;
+                return MAP_SUCCESS;
+            }
         }
     }
     return MAP_ITEM_DOES_NOT_EXIST;

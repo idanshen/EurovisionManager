@@ -1,6 +1,6 @@
+#include "eurovision.h"
 #include "map.h"
 #include "judge.h"
-#include "eurovision.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -48,7 +48,7 @@ static State createState(int stateId,const char* stateName
     new_state->ID = stateId;
     new_state->name = new_name;
     new_state->song=new_song;
-    Map new_map=malloc(sizeof(*new_map));
+    Map new_map=malloc(sizeof(new_map));
     if (new_map==NULL){
         return NULL;
     }
@@ -166,21 +166,22 @@ Eurovision eurovisionCreate(){
     if(judges_map==NULL){
         return NULL;
     }
-    Map states_map=mapCreate(copyState,copyID,releaseState,releaseID,compareIDs);
-    if(states_map==NULL){
-        return NULL;
-    }
+    //Map states_map=mapCreate(copyState,copyID,releaseState,releaseID,compareIDs);
+    //if(states_map==NULL){
+    //    return NULL;
+    //}
     Eurovision new_eurovision=malloc(sizeof(*new_eurovision));
     if(new_eurovision==NULL){
         return NULL;
     }
     new_eurovision->judges=judges_map;
-    new_eurovision->states=states_map;
+    //new_eurovision->states=states_map;
     return new_eurovision;
 }
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
 EurovisionResult eurovisionAddState(Eurovision eurovision, int stateId,
                                     const char *stateName,
                                     const char *songName){
@@ -311,3 +312,4 @@ EurovisionResult eurovisionRemoveVote(Eurovision eurovision, int stateGiver,
         return EUROVISION_SUCCESS;
     }
 }
+
