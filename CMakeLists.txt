@@ -3,4 +3,4 @@ project(eurovision.c C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(Eurovision eurovision.c eurovision.h map.h map.c main.c judge.h judge.c)
+add_executable(Eurovision eurovision.c eurovision.h map.h map.c main.c judge.h judge.c state.h state.c)

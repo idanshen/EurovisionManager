@@ -6,7 +6,7 @@
 
 
 /** Type for defining the judge */
-typedef struct Judge_t{
+struct Judge_t{
     int ID;
     char* name;
     int* votes;
