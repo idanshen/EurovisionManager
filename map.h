@@ -77,6 +77,15 @@ typedef void(*freeMapKeyElements)(MapKeyElement);
 typedef int(*compareMapKeyElements)(MapKeyElement, MapKeyElement);
 
 /**
+* Type of function used by the map to identify equal data elements.
+* This function should return:
+* 		A positive integer if the first element is greater;
+* 		0 if they're equal;
+*		A negative integer if the second element is greater.
+*/
+typedef int(*compareMapDataElements)(MapDataElement, MapDataElement);
+
+/**
 * mapCreate: Allocates a new empty map.
 *
 * @param copyDataElement - Function pointer to be used for copying data elements into
@@ -230,6 +239,18 @@ MapKeyElement mapGetNext(Map map);
 * 	MAP_SUCCESS - Otherwise.
 */
 MapResult mapClear(Map map);
+
+/**
+ * mapMaxData: find the element in the map with the biggest value and return
+ * its key. use to supplied compareMapDataElements function to compare data
+ * elements.
+ * @param map - map instance to search within
+ * @param compare - function to compare between two data elements
+ * @return
+ *  NULL if the map is empty
+ *  the key of the data element with the biggest value otherwise
+ */
+MapKeyElement mapMaxData(Map map, compareMapDataElements compare);
 
 /*!
 * Macro for iterating over a map.

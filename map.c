@@ -262,3 +262,20 @@ MapKeyElement mapGetNext(Map map){
     map->node_iterator = map->node_iterator->next;
     return map->node_iterator->key;
 }
+
+MapKeyElement mapMaxData(Map map, compareMapDataElements compare){
+    MapDataElement current;
+    MapKeyElement max_key = mapGetFirst(map);
+    MapDataElement max = mapGet(map, max_key);
+    if (max==NULL){
+        return NULL;
+    }
+    MAP_FOREACH(MapKeyElement, iterator, map){
+        current = mapGet(map,iterator);
+        if (compare(current,max)>0){
+            max = current;
+            max_key = iterator;
+        }
+    }
+    return max_key;
+}

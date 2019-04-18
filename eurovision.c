@@ -117,7 +117,31 @@ static bool checkName(const char* name){
     return flag;
 }
 
-
+/**
+ * judgeRemoveByVote - remove all the judges which voted to a specific state
+ *                     should be used as part of eurovisionRemoveState function
+ * @param judges - map instance contains all the current judges
+ * @param stateID - the state ID to be used to determined which judge to delete
+ * @return
+ *  EUROVISION_INVALID_ID - in case of invalid state ID
+ *  EUROVISION_SUCCESS - in case of success
+ */
+EurovisionResult judgeRemoveByVote(Map judges, int stateId){
+    if(stateId<0){
+        return EUROVISION_INVALID_ID;
+    }
+    Judge cur_judge;
+    MAP_FOREACH(int*, iterator, judges){
+        cur_judge = (Judge)mapGet(judges, iterator);
+        for (int i = 0; i<10; i++){
+            if (judgeGetVOtes(cur_judge)[i]==stateId){
+                mapRemove(judges,iterator);
+                break;
+            }
+        }
+    }
+    return EUROVISION_SUCCESS;
+}
 
 /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////

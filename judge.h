@@ -43,4 +43,12 @@ void judgeDelete(Judge judge);
 */
 Judge judgeCopy(Judge judge);
 
+/**
+ * judgeGetVOtes - helper function to get the votes of a judge
+ * @param judge - a judge to return his votes
+ * @return
+ *  pointer to a int array of size 10
+ */
+int* judgeGetVOtes(Judge judge);
+
 #endif //EUROVISION_C_JUDGE_H

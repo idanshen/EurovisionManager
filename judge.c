@@ -61,3 +61,7 @@ Judge judgeCopy(Judge judge){
     Judge new_judge = judgeCreate(id_ptr,name_ptr,results_ptr);
     return new_judge;
 }
+
+int* judgeGetVOtes(Judge judge){
+    return judge->votes;
+}
