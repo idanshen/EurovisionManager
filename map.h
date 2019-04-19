@@ -33,6 +33,9 @@
 *   				  returns it.
 *	 mapClear		- Clears the contents of the map. Frees all the elements of
 *	 				  the map using the free function.
+*	 mapMaxData     - find the element in the map with the biggest value.
+*	 mapCopyOnlyKeys- Creates a copy of target map but replace the data element
+*                     type and reset all data element to default value.
 * 	 MAP_FOREACH	- A macro for iterating over the map's elements.
 */
 
@@ -244,6 +247,7 @@ MapResult mapClear(Map map);
  * mapMaxData: find the element in the map with the biggest value and return
  * its key. use to supplied compareMapDataElements function to compare data
  * elements.
+ * ADDED FOR QUESTION 2, NOT A PART OF QUESTION 1
  * @param map - map instance to search within
  * @param compare - function to compare between two data elements
  * @return
@@ -251,6 +255,23 @@ MapResult mapClear(Map map);
  *  the key of the data element with the biggest value otherwise
  */
 MapKeyElement mapMaxData(Map map, compareMapDataElements compare);
+
+/**
+ * mapCopyOnlyKeys: Creates a copy of target map but replace the data element
+ * type and reset all data element to default value.
+ * ADDED FOR QUESTION 2, NOT A PART OF QUESTION 1
+ * @param map - Target map.
+ * @param newCopyData - Function pointer to be used for copying data elements into
+*  	the map or when copying the map.
+ * @param newFreeData - Function pointer to be used for removing data elements from
+* 		the map
+ * @param defaultValue - the default value for all the data elements in the map
+ * @return
+ * 	NULL if a NULL was sent or a memory allocation failed.
+ * 	A Map containing the required elements as map otherwise.
+ */
+Map mapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
+                    freeMapDataElements newFreeData, MapDataElement defaultValue);
 
 /*!
 * Macro for iterating over a map.

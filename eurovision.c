@@ -18,6 +18,32 @@ struct eurovision_t{
 
 
 /**
+ * copyVote - Function to be used for copying an Vote as a key to the map
+ * @param n - Vote to be copied
+ * @return
+ *   a copy of the given Vote
+ */
+static MapKeyElement copyVote(MapKeyElement n) {
+    if (!n) {
+        return NULL;
+    }
+    char *copy = malloc(sizeof(*copy));
+    if (!copy) {
+        return NULL;
+    }
+    *copy = *(double *) n;
+    return (MapDataElement) copy;
+}
+
+/**
+ * releaseVote - free the memory occupied by a vote instance
+ * @param n - a vote instance to be released
+ */
+static void releaseVote(MapKeyElement n) {
+    free(n);
+}
+
+/**
  * copyID - Function to be used for copying an ID as a key to the map
  * @param n - ID to be copied
  * @return
@@ -32,11 +58,11 @@ static MapKeyElement copyID(MapKeyElement n) {
         return NULL;
     }
     *copy = *(int *) n;
-    return copy;
+    return (MapDataElement) copy;
 }
 
 /**
- * releaseID - free the memorey occupied by a ID instance
+ * releaseID - free the memory occupied by a ID instance
  * @param n - a ID instance to be released
  */
 static void releaseID(MapKeyElement n) {
@@ -336,3 +362,80 @@ EurovisionResult eurovisionRemoveVote(Eurovision eurovision, int stateGiver,
     }
 }
 
+/**
+ * judgesScoreCalculate - create a map that contains as keys the states IDs and
+ * as data the average score given by the judges
+ * @param eurovision - an eurovision instance target
+ * @return
+ *  map contains the average judges score per state
+ */
+static Map judgesScoreCalculate(Eurovision eurovision){
+    int score[10] = {12,10,8,7,6,5,4,3,2,1};
+    double default_value = 0.;
+    Map judges_score = mapCopyOnlyKeys(eurovision->states, copyVote,
+                                       releaseVote, &default_value);
+    if (!judges_score){
+        free(judges_score);
+        return NULL;
+    }
+    Judge cur_judge;
+    double score_placeholder;
+    double number_of_judges = (double)mapGetSize(eurovision->judges);
+    MAP_FOREACH(MapKeyElement, iterator, eurovision->judges){
+        cur_judge = mapGet(eurovision->judges, iterator);
+        int* votes =judgeGetVOtes(cur_judge);
+        for (int i=0; i<10;i++){
+            score_placeholder = *(double*)mapGet(judges_score, &votes[i]);
+            score_placeholder = score_placeholder+score[i];
+            MapResult res = mapPut(judges_score, &votes[i], &score_placeholder);
+            if (res!=MAP_SUCCESS){
+                mapDestroy(judges_score);
+                return NULL;
+            }
+        }
+    }
+    MAP_FOREACH(MapKeyElement, iterator, judges_score){
+        score_placeholder = *(double*)mapGet(judges_score,iterator);
+        score_placeholder = score_placeholder/number_of_judges;
+        MapResult res = mapPut(judges_score, iterator, &score_placeholder);
+        if (res!=MAP_SUCCESS){
+            mapDestroy(judges_score);
+            return NULL;
+        }
+    }
+    return judges_score;
+}
+
+List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
+    if(!eurovision){
+        return NULL;
+    }
+    if((audiencePercent>100)||(audiencePercent<0)){
+    return NULL;
+    }
+    Map judges_score = judgesScoreCalculate(eurovision);
+    Map states_score = statesScoreCalculate(eurovision);
+    double default_value = 0.;
+    double judges_score_placeholder, states_score_placeholder, score;
+    Map overall_score = mapCopyOnlyKeys(judges_score, copyVote,
+                                       releaseVote, &default_value);
+    if (!overall_score){
+        free(overall_score);
+        return NULL;
+    }
+    MAP_FOREACH(MapKeyElement, iterator, overall_score){
+        judges_score_placeholder = *(double*)mapGet(judges_score, iterator);
+        states_score_placeholder = *(double*)mapGet(states_score, iterator);
+        score = ((double)audiencePercent/100)*states_score_placeholder +
+                (1-(double)audiencePercent/100)*judges_score_placeholder;
+        MapResult res = mapPut(overall_score,iterator,&score);
+        if (res!=MAP_SUCCESS){
+            mapDestroy(judges_score);
+            mapDestroy(states_score);
+            mapDestroy(overall_score);
+            return NULL;
+        }
+    }
+    List final_results = mapToList(overall_score);
+    return final_results;
+}

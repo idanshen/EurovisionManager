@@ -50,6 +50,7 @@ Map mapCreate(copyMapDataElements copyDataElement,
     map->freeData = freeDataElement;
     map->freeKey = freeKeyElement;
     map->compareKey = compareKeyElements;
+    return map;
 }
 
 int mapGetSize(Map map){
@@ -118,7 +119,6 @@ void mapDestroy(Map map){
     }
     mapClear(map);
     free(map);
-    return;
 }
 
 Map mapCopy(Map map){
@@ -278,4 +278,32 @@ MapKeyElement mapMaxData(Map map, compareMapDataElements compare){
         }
     }
     return max_key;
+}
+
+
+Map mapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
+        freeMapDataElements newFreeData, MapDataElement defaultValue){
+    if(map==NULL) {
+        return NULL;
+    }
+
+    copyMapKeyElements newCopyKey=map->copyKey;
+    freeMapKeyElements newFreeKey=map->freeKey;
+    compareMapKeyElements newCompareKey=map->compareKey;
+    Map new_map=mapCreate(newCopyData,newCopyKey,newFreeData,newFreeKey,
+                          newCompareKey);
+    MapDataElement new_data=malloc(sizeof(*new_data));
+    if(new_data==NULL){
+        return NULL;
+    }
+    new_data=map->copyData(defaultValue);
+    MAP_FOREACH(MapKeyElement, iterator, map){
+        MapKeyElement new_key=malloc(sizeof(*new_key));
+        if(new_key==NULL){
+            return NULL;
+        }
+        new_key=map->copyKey(iterator);
+        mapPut(new_map,new_key,new_data);
+    }
+    return map;
 }
