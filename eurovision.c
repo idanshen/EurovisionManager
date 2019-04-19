@@ -322,7 +322,7 @@ EurovisionResult eurovisionAddVote(Eurovision eurovision, int stateGiver,
     if (!giver_state){
         return EUROVISION_STATE_NOT_EXIST;
     }
-    Map state_voting_list=getVotesList(giver_state, &stateGiver);
+    Map state_voting_list=getVotesList(giver_state);
     //int curr_vote = *(int*)mapGet(giver_state->votes,&stateTaker);
     int curr_vote = *(int*)mapGet(state_voting_list,&stateTaker);
     curr_vote++;
@@ -349,7 +349,7 @@ EurovisionResult eurovisionRemoveVote(Eurovision eurovision, int stateGiver,
     if (!giver_state){
         return EUROVISION_STATE_NOT_EXIST;
     }
-    Map state_voting_list=getVotesList(giver_state, &stateGiver);
+    Map state_voting_list=getVotesList(giver_state);
     //int curr_vote = *(int*)mapGet(giver_state->votes,&stateTaker);
     int curr_vote = *(int*)mapGet(state_voting_list,&stateTaker);
     if (curr_vote>0){
@@ -405,6 +405,29 @@ static Map judgesScoreCalculate(Eurovision eurovision){
     }
     return judges_score;
 }
+static Map statesScoreCalculate(Eurovision eurovision){
+    if(eurovision==NULL){
+        return NULL;
+    }
+    int default_value=0;
+    Map total_num_of_votes=mapCopyOnlyKeys(eurovision->states, copyID,releaseID,
+            &default_value); //TODO: check if we need compare func
+    if(total_num_of_votes==NULL){
+        return NULL;
+    }
+    MAP_FOREACH(int *,iterator,eurovision->states){
+        State current_state=mapGet(eurovision->states,iterator);
+        if(current_state==NULL){
+            return NULL;
+        }
+        Map current_votes=getVotesList(current_state);
+        MAP_FOREACH(int *, state_iterator,current_votes){
+            int * added_score=mapGet(current_votes,state_iterator);
+            int * current_score=mapGet(total_num_of_votes,state_iterator); //check if use of iterator is ok
+            *current_score+=*added_score;
+            mapPut(total_num_of_votes,iterator,current_score);
+        }
+    }
 
 List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
     if(!eurovision){
@@ -439,3 +462,74 @@ List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
     List final_results = mapToList(overall_score);
     return final_results;
 }
+    return total_num_of_votes;
+
+}
+
+static int* convertVotesMapToArray(Map votes){
+    int same_num_of_votes_counter=0;
+    int last_max_value=0;
+    int indx=0;
+    int size_of_votes=mapGetSize(votes);
+    int* winners_by_audience=malloc(sizeof(*winners_by_audience)*size_of_votes);
+    if(winners_by_audience==NULL){
+        return NULL;
+    }
+    while(mapGetSize(votes)!=0){
+        int * max_key=mapMaxData(votes,compareIDs);
+        int * current_max_value=mapGet(votes,max_key);
+        if(*current_max_value==last_max_value){
+            same_num_of_votes_counter++;
+            for(int i=indx;i-same_num_of_votes_counter<i;i--){
+                if(winners_by_audience[i]<winners_by_audience[i-1]){
+                    int temp=winners_by_audience[i-1];
+                    winners_by_audience[i-1]=winners_by_audience[i];
+                    winners_by_audience[i]=temp;
+                }
+            }
+        }
+        else{
+            same_num_of_votes_counter=0;
+        }
+        last_max_value=*current_max_value;
+        MapResult result=mapRemove(votes,max_key);
+        if(result!=MAP_SUCCESS){
+            mapDestroy(votes);
+            free(winners_by_audience);
+            return NULL;
+        }
+        indx++;
+
+    }
+    mapDestroy(votes);
+    return winners_by_audience;
+}
+
+List eurovisionRunAudienceFavorite(Eurovision eurovision){
+    if(mapGetSize(eurovision->states)==0){
+        List empty_list=listCreate(copyID,releaseID);
+        return empty_list;
+    }
+    Map sum_of_votes=statesScoreCalculate(eurovision);
+    if(sum_of_votes==NULL){
+        return NULL;
+    }
+    int size_of_arr=mapGetSize(sum_of_votes);
+    int * arr_of_votes=convertVotesMapToArray(sum_of_votes);
+    if(arr_of_votes==NULL){
+        return NULL;
+    }
+    List winners_by_audience=listCreate(copyID,releaseID); //create new ID functions for list(?)
+    for(int i=0;i<size_of_arr;i++){
+        ListResult result=listInsertAfterCurrent(winners_by_audience,
+                arr_of_votes); //need to add special case for first?
+        if(result!=LIST_SUCCESS) {
+            free(arr_of_votes);
+            listDestroy(winners_by_audience);
+            return NULL;
+        }
+    }
+
+    return winners_by_audience;
+}
+

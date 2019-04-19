@@ -115,10 +115,10 @@ MapResult addOrRemoveNewStateToVotes(State state,int * ID,int action){
     return MAP_SUCCESS;
 }
 
-Map getVotesList(State state, int * ID){
+Map getVotesList(State state){
     if(!state){
         return NULL;
     }
-    Map state_list= state->votes;
+    Map state_list = state->votes;
     return state_list;
 }
