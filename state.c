@@ -6,7 +6,7 @@
 #include "map.h" ///check this!!
 #define ADD 1
 #define REMOVE -1
-
+#define EMPTY -1
 
 //functions needed for states vote map
 static MapKeyElement copyVotesOrID(MapKeyElement n) {
@@ -121,4 +121,52 @@ Map getVotesList(State state){
     }
     Map state_list = state->votes;
     return state_list;
+}
+
+int* stateGetTopTen(State state){
+    int* votes = (int*)malloc(sizeof(int)*10);
+    int index = 0, same_num_of_votes_counter = 0, last_max_value = 0;
+    if (!votes){
+        return NULL;
+    }
+    Map state_votes = mapCopy(getVotesList(state));
+    while(mapGetSize(state_votes)>0){
+        int * max_key = mapMaxData(state_votes,compareIDs);
+        int * current_max_value = mapGet(state_votes,max_key);
+        votes[index]=*(int*)copyVotesOrID(max_key);
+        if(*current_max_value==last_max_value){
+            same_num_of_votes_counter++;
+            for(int i=index;i-same_num_of_votes_counter<i;i--){
+                if(votes[i]<votes[i-1]){
+                    int temp=votes[i-1];
+                    votes[i-1]=votes[i];
+                    votes[i]=temp;
+                }
+            }
+        }
+        else{
+            same_num_of_votes_counter=0;
+        }
+        last_max_value=*current_max_value;
+        MapResult result=mapRemove(state_votes,max_key);
+        if(result!=MAP_SUCCESS){
+            mapDestroy(state_votes);
+            free(votes);
+            return NULL;
+        }
+        index++;
+    }
+    if (index<10){
+        for (int j = 0; j<10-index; j++){
+            votes[index+j] = EMPTY;
+        }
+    }
+    return votes;
+}
+
+char* stateGetName(State state){
+    if (!state){
+        return NULL;
+    }
+    return state->name;
 }

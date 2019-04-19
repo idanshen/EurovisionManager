@@ -58,4 +58,23 @@ MapResult addOrRemoveNewStateToVotes(State state,int * ID,int action);
 
 Map getVotesList(State state);
 
+/**
+ * stateGetTopTen: create ordered array with the top 10 states based on the
+ * votes of the target state
+ * @param state - target state
+ * @return
+ *  pointer to int array of size 10 that contains the stateIDs by order.
+ *  if the target state voted for less than 10 other states, the array will
+ *  contain EMPTY (-1) in the remaining places in the array
+ */
+int* stateGetTopTen(State state);
+
+/**
+ * Gets the name of the target state
+ * @param state - target state
+ * @return
+ *  pointer to the state name;
+ */
+char* stateGetName(State state);
+
 #endif //EUROVISION_C_STATE_H

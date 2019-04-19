@@ -2,6 +2,7 @@
 #include "map.h"
 #include "judge.h"
 #include "state.h"
+#include "list.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -9,6 +10,9 @@
 #include <string.h>
 #define ADD 1
 #define REMOVE -1
+#define JUDGES 1
+#define STATES 2
+#define EMPTY -1
 //TODO: declare ID as int
 
 struct eurovision_t{
@@ -59,6 +63,32 @@ static MapKeyElement copyID(MapKeyElement n) {
     }
     *copy = *(int *) n;
     return (MapDataElement) copy;
+}
+
+/**
+ * copyString - Function to be used for copying an ID as a key to the map
+ * @param n - ID to be copied
+ * @return
+ *   a copy of the given ID
+ */
+static ListElement copyString(ListElement n) {
+    if (!n) {
+        return NULL;
+    }
+    char *copy = malloc(sizeof(*copy));
+    if (!copy) {
+        return NULL;
+    }
+    copy = strcpy(copy,n);
+    return (MapDataElement) copy;
+}
+
+/**
+ * releaseString - free the memory occupied by a string
+ * @param n - a string instance to be released
+ */
+static void releaseString(ListElement n) {
+    free(n);
 }
 
 /**
@@ -333,7 +363,6 @@ EurovisionResult eurovisionAddVote(Eurovision eurovision, int stateGiver,
     }
 }
 
-
 EurovisionResult eurovisionRemoveVote(Eurovision eurovision, int stateGiver,
                                       int stateTaker){
     if(!eurovision){
@@ -363,85 +392,196 @@ EurovisionResult eurovisionRemoveVote(Eurovision eurovision, int stateGiver,
 }
 
 /**
- * judgesScoreCalculate - create a map that contains as keys the states IDs and
- * as data the average score given by the judges
+ * ScoreCalculate - create a map that contains as keys the states IDs and
+ * as data the average score given by the given voters - states or judges
  * @param eurovision - an eurovision instance target
+ * @param voters_flag - target score type, either JUDGES or STATES
  * @return
- *  map contains the average judges score per state
+ *  NULL if a error acquired (memory allocation, illegal argument etc.)
+ *  map contains the average score per state otherwise
  */
-static Map judgesScoreCalculate(Eurovision eurovision){
-    int score[10] = {12,10,8,7,6,5,4,3,2,1};
-    double default_value = 0.;
-    Map judges_score = mapCopyOnlyKeys(eurovision->states, copyVote,
-                                       releaseVote, &default_value);
-    if (!judges_score){
-        free(judges_score);
+static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
+    if ((voters_flag!=JUDGES)&&(voters_flag!=STATES)){
         return NULL;
     }
-    Judge cur_judge;
+    Map* voters;
+    if (voters_flag==JUDGES){
+        voters = &eurovision->judges;
+    }
+    else{
+        voters = &eurovision->states;
+    }
+    double score[10] = {12,10,8,7,6,5,4,3,2,1};
+    double default_value = 0.;
+    Map voters_score = mapCopyOnlyKeys(eurovision->states, copyVote,
+                                       releaseVote, &default_value);
+    if (!voters_score){
+        free(voters_score);
+        return NULL;
+    }
     double score_placeholder;
-    double number_of_judges = (double)mapGetSize(eurovision->judges);
-    MAP_FOREACH(MapKeyElement, iterator, eurovision->judges){
-        cur_judge = mapGet(eurovision->judges, iterator);
-        int* votes =judgeGetVOtes(cur_judge);
+    double number_of_voters = (double)mapGetSize(*voters);
+    int* votes;
+    MAP_FOREACH(MapKeyElement, iterator, *voters){
+        if (voters_flag==JUDGES){
+            Judge cur_judge;
+            cur_judge = mapGet(eurovision->judges, iterator);
+            votes =judgeGetVOtes(cur_judge);
+        }
+        else{
+            State cur_state;
+            cur_state = mapGet(eurovision->judges, iterator);
+            votes = stateGetTopTen(cur_state);
+        }
         for (int i=0; i<10;i++){
-            score_placeholder = *(double*)mapGet(judges_score, &votes[i]);
-            score_placeholder = score_placeholder+score[i];
-            MapResult res = mapPut(judges_score, &votes[i], &score_placeholder);
-            if (res!=MAP_SUCCESS){
-                mapDestroy(judges_score);
-                return NULL;
+            if (votes[i]!=EMPTY) {
+                score_placeholder = *(double *) mapGet(voters_score, &votes[i]);
+                score_placeholder = score_placeholder + score[i];
+                MapResult res = mapPut(voters_score, &votes[i], &score_placeholder);
+                if (res != MAP_SUCCESS) {
+                    mapDestroy(voters_score);
+                    return NULL;
+                }
             }
         }
     }
-    MAP_FOREACH(MapKeyElement, iterator, judges_score){
-        score_placeholder = *(double*)mapGet(judges_score,iterator);
-        score_placeholder = score_placeholder/number_of_judges;
-        MapResult res = mapPut(judges_score, iterator, &score_placeholder);
+    MAP_FOREACH(MapKeyElement, iterator, voters_score){
+        score_placeholder = *(double*)mapGet(voters_score,iterator);
+        score_placeholder = score_placeholder/number_of_voters;
+        MapResult res = mapPut(voters_score, iterator, &score_placeholder);
         if (res!=MAP_SUCCESS){
-            mapDestroy(judges_score);
+            mapDestroy(voters_score);
             return NULL;
         }
     }
-    return judges_score;
+    return voters_score;
 }
-static Map statesScoreCalculate(Eurovision eurovision){
-    if(eurovision==NULL){
+
+/**
+ * VotesArrayToList - convert array of state IDs to a list of state IDs while
+ * keeping the same order
+ * @param votes_array - pointer to array of ints to convert
+ * @param n  - the length og the array
+ * @return
+ *  NULL if error acquired, List contains the stateID otherwise
+ */
+static List VotesArrayToList(int* votes_array, int n){
+    List votes = listCreate(copyID,releaseID);
+    if (!votes){
         return NULL;
     }
-    int default_value=0;
-    Map total_num_of_votes=mapCopyOnlyKeys(eurovision->states, copyID,releaseID,
-            &default_value); //TODO: check if we need compare func
-    if(total_num_of_votes==NULL){
-        return NULL;
-    }
-    MAP_FOREACH(int *,iterator,eurovision->states){
-        State current_state=mapGet(eurovision->states,iterator);
-        if(current_state==NULL){
+    for (int i = 0; i<n; i++){
+        ListResult res = listInsertLast(votes, &votes_array[i]);
+        if (res != LIST_SUCCESS){
+            free(votes);
             return NULL;
         }
-        Map current_votes=getVotesList(current_state);
-        MAP_FOREACH(int *, state_iterator,current_votes){
-            int * added_score=mapGet(current_votes,state_iterator);
-            int * current_score=mapGet(total_num_of_votes,state_iterator); //check if use of iterator is ok
-            *current_score+=*added_score;
-            mapPut(total_num_of_votes,iterator,current_score);
+    }
+    return votes;
+}
+
+/**
+ * mapToOrderedList - convert map of state IDs  and number of votes to a list
+ * of state IDs ordered by the number of votes the state got
+ * @param votes - map contains stateIDs as keys and number of votes os data
+ * @return
+ *  NULL if error acquired, List contains the stateID otherwise
+ */
+static List mapToOrderedList(Map votes){
+    int same_num_of_votes_counter=0;
+    int last_max_value=0;
+    int index=0;
+    int size_of_votes=mapGetSize(votes);
+    int* ordered_winners=malloc(sizeof(*ordered_winners)*size_of_votes);
+    if(ordered_winners==NULL){
+        return NULL;
+    }
+    while(mapGetSize(votes)!=0){
+        int * max_key=mapMaxData(votes,compareIDs);
+        int * current_max_value=mapGet(votes,max_key);
+        ordered_winners[index]=*(int*)copyID(max_key);
+        if(*current_max_value==last_max_value){
+            same_num_of_votes_counter++;
+            for(int i=index;i-same_num_of_votes_counter<i;i--){
+                if(ordered_winners[i]<ordered_winners[i-1]){
+                    int temp=ordered_winners[i-1];
+                    ordered_winners[i-1]=ordered_winners[i];
+                    ordered_winners[i]=temp;
+                }
+            }
+        }
+        else{
+            same_num_of_votes_counter=0;
+        }
+        last_max_value=*current_max_value;
+        MapResult result=mapRemove(votes,max_key);
+        if(result!=MAP_SUCCESS){
+            mapDestroy(votes);
+            free(ordered_winners);
+            return NULL;
+        }
+        index++;
+    }
+    mapDestroy(votes);
+    List results = VotesArrayToList(ordered_winners, size_of_votes);
+    free(ordered_winners);
+    if (!results){
+        free(results);
+        return NULL;
+    }
+    return results;
+}
+
+/**
+ * convert List contains stateIDs to List contains the corresponding state names
+ * @param keys_list - target list contains the StateIds
+ * @param states_map - Map object contain all the state names
+ * @return
+ *  NULL if error acquired, List contains the state names otherwise
+ */
+static List keyListToNameList(List keys_list, Map states_map){
+    List name_list = listCreate(copyString,releaseString);
+    State cur_state;
+    char* cur_name;
+    LIST_FOREACH(int*, iterator, keys_list){
+        cur_state = mapGet(states_map, iterator);
+        if (!cur_state){
+            free(name_list);
+            free(cur_state);
+            return NULL;
+        }
+        cur_name = stateGetName(cur_state);
+        ListResult res = listInsertLast(name_list, cur_name);
+        if (res!=LIST_SUCCESS){
+            free(name_list);
+            free(cur_state);
+            return NULL;
         }
     }
+    return name_list;
+}
+
+List eurovisionRunAudienceFavorite(Eurovision eurovision){
+    List winners_by_audience=eurovisionRunContest(eurovision, 100);
+    if (!winners_by_audience){
+        return NULL;
+    }
+    return winners_by_audience;
+}
 
 List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
     if(!eurovision){
         return NULL;
     }
     if((audiencePercent>100)||(audiencePercent<0)){
-    return NULL;
+        return NULL;
     }
-    Map judges_score = judgesScoreCalculate(eurovision);
-    Map states_score = statesScoreCalculate(eurovision);
+    Map judges_score = ScoreCalculate(eurovision, JUDGES);
+    Map states_score = ScoreCalculate(eurovision, STATES);
     double default_value = 0.;
     double judges_score_placeholder, states_score_placeholder, score;
     Map overall_score = mapCopyOnlyKeys(judges_score, copyVote,
-                                       releaseVote, &default_value);
+                                        releaseVote, &default_value);
     if (!overall_score){
         free(overall_score);
         return NULL;
@@ -459,77 +599,13 @@ List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
             return NULL;
         }
     }
-    List final_results = mapToList(overall_score);
-    return final_results;
-}
-    return total_num_of_votes;
-
-}
-
-static int* convertVotesMapToArray(Map votes){
-    int same_num_of_votes_counter=0;
-    int last_max_value=0;
-    int indx=0;
-    int size_of_votes=mapGetSize(votes);
-    int* winners_by_audience=malloc(sizeof(*winners_by_audience)*size_of_votes);
-    if(winners_by_audience==NULL){
+    List final_results_keys = mapToOrderedList(overall_score);
+    List final_results_names = keyListToNameList(final_results_keys,
+            eurovision->states);
+    free(final_results_keys);
+    if (!final_results_names){
+        free(final_results_names);
         return NULL;
     }
-    while(mapGetSize(votes)!=0){
-        int * max_key=mapMaxData(votes,compareIDs);
-        int * current_max_value=mapGet(votes,max_key);
-        if(*current_max_value==last_max_value){
-            same_num_of_votes_counter++;
-            for(int i=indx;i-same_num_of_votes_counter<i;i--){
-                if(winners_by_audience[i]<winners_by_audience[i-1]){
-                    int temp=winners_by_audience[i-1];
-                    winners_by_audience[i-1]=winners_by_audience[i];
-                    winners_by_audience[i]=temp;
-                }
-            }
-        }
-        else{
-            same_num_of_votes_counter=0;
-        }
-        last_max_value=*current_max_value;
-        MapResult result=mapRemove(votes,max_key);
-        if(result!=MAP_SUCCESS){
-            mapDestroy(votes);
-            free(winners_by_audience);
-            return NULL;
-        }
-        indx++;
-
-    }
-    mapDestroy(votes);
-    return winners_by_audience;
+    return final_results_names;
 }
-
-List eurovisionRunAudienceFavorite(Eurovision eurovision){
-    if(mapGetSize(eurovision->states)==0){
-        List empty_list=listCreate(copyID,releaseID);
-        return empty_list;
-    }
-    Map sum_of_votes=statesScoreCalculate(eurovision);
-    if(sum_of_votes==NULL){
-        return NULL;
-    }
-    int size_of_arr=mapGetSize(sum_of_votes);
-    int * arr_of_votes=convertVotesMapToArray(sum_of_votes);
-    if(arr_of_votes==NULL){
-        return NULL;
-    }
-    List winners_by_audience=listCreate(copyID,releaseID); //create new ID functions for list(?)
-    for(int i=0;i<size_of_arr;i++){
-        ListResult result=listInsertAfterCurrent(winners_by_audience,
-                arr_of_votes); //need to add special case for first?
-        if(result!=LIST_SUCCESS) {
-            free(arr_of_votes);
-            listDestroy(winners_by_audience);
-            return NULL;
-        }
-    }
-
-    return winners_by_audience;
-}
-
