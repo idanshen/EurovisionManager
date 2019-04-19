@@ -50,6 +50,8 @@ Map mapCreate(copyMapDataElements copyDataElement,
     map->freeData = freeDataElement;
     map->freeKey = freeKeyElement;
     map->compareKey = compareKeyElements;
+
+    return map;
 }
 
 int mapGetSize(Map map){

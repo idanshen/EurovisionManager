@@ -56,6 +56,6 @@ State stateCopy(State state);
  */
 MapResult addOrRemoveNewStateToVotes(State state,int * ID,int action);
 
-Map getVotesList(State state, int * ID);
+Map getVotesList(State state);
 
 #endif //EUROVISION_C_STATE_H
