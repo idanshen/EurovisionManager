@@ -128,7 +128,7 @@ MapResult changeVotesList(State state,Map new_votes_list){
     }
     Map temp=state->votes;
     state->votes=new_votes_list;
-    free(temp);
+    mapDestroy(temp);
     return MAP_SUCCESS;
 
 }
