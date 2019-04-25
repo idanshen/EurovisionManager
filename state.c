@@ -126,8 +126,9 @@ MapResult changeVotesList(State state,Map new_votes_list){
     if(!new_votes_list || !state){
         return MAP_NULL_ARGUMENT;
     }
-    mapDestroy(state->votes);
+    Map temp=state->votes;
     state->votes=new_votes_list;
+    free(temp);
     return MAP_SUCCESS;
 
 }

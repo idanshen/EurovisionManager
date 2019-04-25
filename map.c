@@ -117,9 +117,7 @@ void mapDestroy(Map map){
     if(map==NULL){
         return;
     }
-    MapResult res=mapClear(map);
-    free(map->base);
-    free(map->node_iterator);
+    mapClear(map);
     free(map);
 }
 

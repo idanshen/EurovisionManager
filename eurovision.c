@@ -284,6 +284,7 @@ static EurovisionResult updateStatesVoteMaps(Map states,int stateId,
                 return EUROVISION_STATE_NOT_EXIST;
             }
         }
+        /*
         if(*IDiterator==stateId && num_of_states>1){
             Map updated_votes_list=getVotesList(last_state);
             Map new_votes_list=mapCopyOnlyKeys(updated_votes_list,copyID,
@@ -294,6 +295,7 @@ static EurovisionResult updateStatesVoteMaps(Map states,int stateId,
             }
 
         }
+         */
         last_state=current_state;
 
     }
@@ -350,6 +352,11 @@ EurovisionResult eurovisionRemoveState(Eurovision eurovision, int stateId){
     if(result==MAP_ITEM_DOES_NOT_EXIST){
         return EUROVISION_STATE_NOT_EXIST;
     }
+<<<<<<< HEAD
+
+    mapRemove(eurovision->states,&stateId); //TODO: check results
+=======
+>>>>>>> master
     EurovisionResult update_result=updateStatesVoteMaps(eurovision->states, \
             stateId,REMOVE);
     return update_result;
