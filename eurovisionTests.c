@@ -317,22 +317,23 @@ bool testRunAudienceFavorite() {
   return true;
 }
 
+
 /* friendlies: malta-croatia, russia-moldova */
-bool testRunGetFriendlyStates() {
-  Eurovision eurovision = setupEurovision();
-  setupEurovisionStates(eurovision);
-  /* setupEurovisionJudges(eurovision); */
-  setupEurovisionVotes2(eurovision);
-
-  List friendlies = eurovisionRunGetFriendlyStates(eurovision);
-  CHECK((friendlies == NULL), false);
-  CHECK(listGetSize(friendlies), 2);
-  char *current = (char *)listGetFirst(friendlies);
-  CHECK(strcmp(current, "croatia - malta"), 0);
-  current  = (char*)listGetNext(friendlies);
-  CHECK(strcmp(current, "moldova - russia"), 0);
-
-  listDestroy(friendlies);
-  eurovisionDestroy(eurovision);
-  return true;
-}
+//bool testRunGetFriendlyStates() {
+//  Eurovision eurovision = setupEurovision();
+//  setupEurovisionStates(eurovision);
+//  /* setupEurovisionJudges(eurovision); */
+//  setupEurovisionVotes2(eurovision);
+//
+//  List friendlies = eurovisionRunGetFriendlyStates(eurovision);
+//  CHECK((friendlies == NULL), false);
+// CHECK(listGetSize(friendlies), 2);
+// char *current = (char *)listGetFirst(friendlies);
+// CHECK(strcmp(current, "croatia - malta"), 0);
+// current  = (char*)listGetNext(friendlies);
+// CHECK(strcmp(current, "moldova - russia"), 0);
+//
+// listDestroy(friendlies);
+// eurovisionDestroy(eurovision);
+// return true;
+//}
