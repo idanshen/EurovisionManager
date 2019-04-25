@@ -67,7 +67,6 @@ int mapGetSize(Map map){
         next_ptr=next_ptr->next;
     }
     return counter;
-
 }
 
 bool mapContains(Map map, MapKeyElement element){
@@ -168,6 +167,17 @@ MapResult mapPut(Map map, MapKeyElement keyElement, MapDataElement dataElement){
         return MAP_SUCCESS;
     }
     else {
+        if (map->compareKey(map->base->key, keyElement)==0){
+            map->base->data = map->copyData(dataElement);
+            free(new);
+            return MAP_SUCCESS;
+        }
+        else if (map->compareKey(map->base->key, keyElement)>0){
+            Node temp = map->base;
+            map->base = new;
+            new->next = temp;
+            return MAP_SUCCESS;
+        }
         MAP_FOREACH(MapKeyElement, iterator, map) {
             if (!map->node_iterator->next) {
                 map->node_iterator->next = new;
@@ -192,12 +202,6 @@ MapDataElement mapGet(Map map, MapKeyElement keyElement){
     if((!keyElement) || (!map)){
         return NULL;
     }
-    /*Node iter = malloc(sizeof(*iter));
-    if(!iter) {
-        free(iter);
-        return NULL;
-    }
-     */
     Node iter = map->base;
     while(iter->next){
         if (map->compareKey(iter->key,keyElement) == 0) {
@@ -222,7 +226,7 @@ MapResult mapRemove(Map map, MapKeyElement keyElement){
         map->freeKey(map->base->key);
         map->freeData(map->base->data);
         Node temp_pointer = map->base->next;
-        free(map->base);
+        //free(map->base); TODO: idan-think about it
         map->base = temp_pointer;
         return MAP_SUCCESS;
     }
@@ -296,14 +300,16 @@ Map mapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
     if(new_data==NULL){
         return NULL;
     }
-    new_data=map->copyData(defaultValue);
+    new_data=new_map->copyData(defaultValue);
+    MapKeyElement new_key=malloc(sizeof(*new_key));
+    if(new_key==NULL){
+        return NULL;
+    }
     MAP_FOREACH(MapKeyElement, iterator, map){
-        MapKeyElement new_key=malloc(sizeof(*new_key));
-        if(new_key==NULL){
-            return NULL;
-        }
         new_key=map->copyKey(iterator);
         mapPut(new_map,new_key,new_data);
     }
-    return map;
+    free(new_data);
+    free(new_key);
+    return new_map;
 }

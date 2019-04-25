@@ -49,6 +49,6 @@ Judge judgeCopy(Judge judge);
  * @return
  *  pointer to a int array of size 10
  */
-int* judgeGetVOtes(Judge judge);
+int* judgeGetVotes(Judge judge);
 
 #endif //EUROVISION_C_JUDGE_H

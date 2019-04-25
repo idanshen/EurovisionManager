@@ -93,8 +93,6 @@ void deleteState(State state){
     free(state->name);
     mapDestroy(state->votes);
     free(state);
-    return;
-
 }
 
 MapResult addOrRemoveNewStateToVotes(State state,int * ID,int action){
@@ -135,7 +133,7 @@ MapResult changeVotesList(State state,Map new_votes_list){
 
 int* stateGetTopTen(State state){
     int* votes = (int*)malloc(sizeof(int)*10);
-    int index = 0, same_num_of_votes_counter = 0, last_max_value = 0;
+    int index = 0, same_num_of_votes_counter = 0, last_max_value = -1;
     if (!votes){
         return NULL;
     }
@@ -146,7 +144,7 @@ int* stateGetTopTen(State state){
         votes[index]=*(int*)copyVotesOrID(max_key);
         if(*current_max_value==last_max_value){
             same_num_of_votes_counter++;
-            for(int i=index;i-same_num_of_votes_counter<i;i--){
+            for(int i=index;i+same_num_of_votes_counter>=index;i--){
                 if(votes[i]<votes[i-1]){
                     int temp=votes[i-1];
                     votes[i-1]=votes[i];

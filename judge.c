@@ -62,6 +62,6 @@ Judge judgeCopy(Judge judge){
     return new_judge;
 }
 
-int* judgeGetVOtes(Judge judge){
+int* judgeGetVotes(Judge judge){
     return judge->votes;
 }

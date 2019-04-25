@@ -44,7 +44,9 @@ static MapKeyElement copyVote(MapKeyElement n) {
  * @param n - a vote instance to be released
  */
 static void releaseVote(MapKeyElement n) {
-    free(n);
+    if (!n) {
+        free(n);
+    }
 }
 
 /**
@@ -205,7 +207,7 @@ EurovisionResult judgeRemoveByVote(Map judges, int stateId){
     MAP_FOREACH(int*, iterator, judges){
         cur_judge = (Judge)mapGet(judges, iterator);
         for (int i = 0; i<10; i++){
-            if (judgeGetVOtes(cur_judge)[i]==stateId){
+            if (judgeGetVotes(cur_judge)[i]==stateId){
                 mapRemove(judges,iterator);
                 break;
             }
@@ -360,11 +362,6 @@ EurovisionResult eurovisionRemoveState(Eurovision eurovision, int stateId){
     if(result==MAP_ITEM_DOES_NOT_EXIST){
         return EUROVISION_STATE_NOT_EXIST;
     }
-<<<<<<< HEAD
-
-    mapRemove(eurovision->states,&stateId); //TODO: check results
-=======
->>>>>>> master
     EurovisionResult update_result=updateStatesVoteMaps(eurovision->states, \
             stateId,REMOVE);
     return update_result;
@@ -521,7 +518,7 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
         if (voters_flag==JUDGES){
             Judge cur_judge;
             cur_judge = mapGet(eurovision->judges, iterator);
-            votes =judgeGetVOtes(cur_judge);
+            votes = judgeGetVotes(cur_judge);
         }
         else{
             State cur_state;
@@ -530,7 +527,7 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
         }
         for (int i=0; i<10;i++){
             if (votes[i]!=EMPTY) {
-                score_placeholder = *(double *) mapGet(voters_score, &votes[i]);
+                score_placeholder = *(double *)mapGet(voters_score, &votes[i]);
                 score_placeholder = score_placeholder + score[i];
                 MapResult res = mapPut(voters_score, &votes[i], &score_placeholder);
                 if (res != MAP_SUCCESS) {
@@ -540,7 +537,7 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
             }
         }
     }
-    MAP_FOREACH(MapKeyElement, iterator, voters_score){
+    MAP_FOREACH(MapKeyElement, iterator, eurovision->states){
         score_placeholder = *(double*)mapGet(voters_score,iterator);
         score_placeholder = score_placeholder/number_of_voters;
         MapResult res = mapPut(voters_score, iterator, &score_placeholder);
@@ -597,7 +594,7 @@ static List mapToOrderedList(Map votes){
         ordered_winners[index]=*(int*)copyID(max_key);
         if(*current_max_value==last_max_value){
             same_num_of_votes_counter++;
-            for(int i=index;i-same_num_of_votes_counter<i;i--){
+            for(int i=index;i+same_num_of_votes_counter>=index;i--){
                 if(ordered_winners[i]<ordered_winners[i-1]){
                     int temp=ordered_winners[i-1];
                     ordered_winners[i-1]=ordered_winners[i];
@@ -759,7 +756,7 @@ List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
         free(overall_score);
         return NULL;
     }
-    MAP_FOREACH(MapKeyElement, iterator, overall_score){
+    MAP_FOREACH(MapKeyElement, iterator, states_score){
         judges_score_placeholder = *(double*)mapGet(judges_score, iterator);
         states_score_placeholder = *(double*)mapGet(states_score, iterator);
         score = ((double)audiencePercent/100)*states_score_placeholder +
