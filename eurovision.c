@@ -352,11 +352,6 @@ EurovisionResult eurovisionRemoveState(Eurovision eurovision, int stateId){
     if(result==MAP_ITEM_DOES_NOT_EXIST){
         return EUROVISION_STATE_NOT_EXIST;
     }
-<<<<<<< HEAD
-
-    mapRemove(eurovision->states,&stateId); //TODO: check results
-=======
->>>>>>> master
     EurovisionResult update_result=updateStatesVoteMaps(eurovision->states, \
             stateId,REMOVE);
     return update_result;
