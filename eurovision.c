@@ -91,6 +91,21 @@ static void releaseString(ListElement n) {
     free(n);
 }
 
+enum Size {FIRST_IS_GREATER=-1,SAME_SIZE=0,SECOND_IS_GREATER=1};
+static int sortStrings(ListElement str1,ListElement str2){
+    if(!str1|| !str2){
+        return LIST_NULL_ARGUMENT;
+    }
+    if(strcmp(str1,str2)>0){
+        return FIRST_IS_GREATER;
+
+    }
+    if(strcmp(str1,str2)==0){
+        return SAME_SIZE;
+    }
+    return SECOND_IS_GREATER;
+
+}
 /**
  * releaseID - free the memory occupied by a ID instance
  * @param n - a ID instance to be released
@@ -411,7 +426,7 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
     }
     Map* voters;
     if (voters_flag==JUDGES){
-        voters = &eurovision->judges;
+        voters = &eurovision->judges; //TODO:check this
     }
     else{
         voters = &eurovision->states;
@@ -435,7 +450,7 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
         }
         else{
             State cur_state;
-            cur_state = mapGet(eurovision->judges, iterator);
+            cur_state = mapGet(eurovision->states, iterator);
             votes = stateGetTopTen(cur_state);
         }
         for (int i=0; i<10;i++){
@@ -573,7 +588,85 @@ List eurovisionRunAudienceFavorite(Eurovision eurovision){
     }
     return winners_by_audience;
 }
+/**
+ * takes two states' names and combine them into one (ordered) string
+ * @param str1
+ * @param str2
+ * @return a new string of the format "FIRST_NAME - SECOND_NAME,"
+ */
+static char* combineStrings(char* str1, char* str2){
+    int len1=(int)strlen(str1);
+    int len2=(int)strlen(str2);
+    char* new_str=malloc(sizeof(*new_str)*(len1+len2+5));
+    if(strcmp(str1,str2)>=0){
+        strcpy(new_str,str2);
+        strcat(new_str," - ");
+        strcat(new_str,str1);
+    }
+    else{
+        strcpy(new_str,str1);
+        strcat(new_str," - ");
+        strcat(new_str,str2);
 
+    }
+    strcat(new_str,",");
+
+    return new_str;
+}
+List eurovisionRunGetFriendlyStates(Eurovision eurovision){
+    Map euro_states=mapCopy(eurovision->states);
+    List friendly_states=listCreate(copyString,releaseString);
+    int* top_ten_voted=NULL;
+    int* second_top_ten_voted=NULL;
+    char* state_name=NULL;
+    char* second_state_name=NULL;
+    char* new_str=NULL;
+    MAP_FOREACH(int *,iterator,euro_states){
+        State current_state=mapGet(euro_states,iterator);
+        if(!current_state){
+            mapDestroy(euro_states);
+            listDestroy(friendly_states);
+            return NULL;
+        }
+        top_ten_voted=stateGetTopTen(current_state);
+        if(!top_ten_voted){
+            mapDestroy(euro_states);
+            listDestroy(friendly_states);
+            return NULL;
+        }
+        State examined_state=mapGet(euro_states,&top_ten_voted[0]);
+        if(!examined_state){
+            mapDestroy(euro_states);
+            listDestroy(friendly_states);
+            return NULL;
+        }
+        second_top_ten_voted=stateGetTopTen(examined_state);
+        if(!second_top_ten_voted){
+            mapDestroy(euro_states);
+            listDestroy(friendly_states);
+            return NULL;
+        }
+        if(second_top_ten_voted[0]==(*iterator)){
+            state_name=stateGetName(current_state);
+            second_state_name=stateGetName(examined_state);
+            new_str=combineStrings(state_name,second_state_name);
+            ListResult add_res=listInsertAfterCurrent(friendly_states,new_str);
+            if(add_res!=LIST_SUCCESS){
+                free(new_str);
+                mapDestroy(euro_states);
+                listDestroy(friendly_states);
+                return NULL;
+            }
+            free(new_str);
+        }
+    }
+    mapDestroy(euro_states);
+    ListResult result=listSort(friendly_states,sortStrings);
+    if(result!=LIST_SUCCESS){
+        return NULL;
+    }
+    return friendly_states;
+}
 List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
     if(!eurovision){
         return NULL;
