@@ -31,7 +31,7 @@ static MapKeyElement copyVote(MapKeyElement n) {
     if (!n) {
         return NULL;
     }
-    char *copy = malloc(sizeof(*copy));
+    double *copy = malloc(sizeof(*copy));
     if (!copy) {
         return NULL;
     }
@@ -335,6 +335,9 @@ EurovisionResult eurovisionRemoveJudge(Eurovision eurovision, int judgeId){
     else if (result == MAP_SUCCESS){
         return EUROVISION_SUCCESS;
     }
+    else {
+        return EUROVISION_OUT_OF_MEMORY;
+    }
 }
 
 EurovisionResult eurovisionAddVote(Eurovision eurovision, int stateGiver,
@@ -361,6 +364,7 @@ EurovisionResult eurovisionAddVote(Eurovision eurovision, int stateGiver,
     if (result==MAP_SUCCESS){ ////// what about other results?
         return EUROVISION_SUCCESS;
     }
+    return EUROVISION_OUT_OF_MEMORY;
 }
 
 EurovisionResult eurovisionRemoveVote(Eurovision eurovision, int stateGiver,
@@ -389,6 +393,7 @@ EurovisionResult eurovisionRemoveVote(Eurovision eurovision, int stateGiver,
     if (result==MAP_SUCCESS){ ////// what about other results?
         return EUROVISION_SUCCESS;
     }
+    return EUROVISION_OUT_OF_MEMORY;
 }
 
 /**
