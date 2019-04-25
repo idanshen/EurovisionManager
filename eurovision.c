@@ -214,6 +214,27 @@ EurovisionResult judgeRemoveByVote(Map judges, int stateId){
     return EUROVISION_SUCCESS;
 }
 
+
+/**
+ * checkName - check if the results contains only non-negative integers
+ * @param results -
+ * 	the results to validate
+ * @return
+ *  True if the name contains only non-negative integers
+ *  False otherwise
+ */
+static EurovisionResult checkResults(int* results, Map states){
+    bool flag = true;
+    for (int i = 0; i<10; i++){
+        if (results[i]<0){
+            return EUROVISION_INVALID_ID;
+        }
+        if (!mapGet(states,&results[i])){
+            return EUROVISION_STATE_NOT_EXIST;
+        }
+    }
+    return EUROVISION_SUCCESS;
+}
 /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
@@ -331,8 +352,11 @@ EurovisionResult eurovisionRemoveState(Eurovision eurovision, int stateId){
     if(result==MAP_ITEM_DOES_NOT_EXIST){
         return EUROVISION_STATE_NOT_EXIST;
     }
+<<<<<<< HEAD
 
     mapRemove(eurovision->states,&stateId); //TODO: check results
+=======
+>>>>>>> master
     EurovisionResult update_result=updateStatesVoteMaps(eurovision->states, \
             stateId,REMOVE);
     return update_result;
@@ -348,6 +372,10 @@ EurovisionResult eurovisionAddJudge(Eurovision eurovision, int judgeId,
     }
     if(judgeId<0){
         return EUROVISION_INVALID_ID;
+    }
+    EurovisionResult res = checkResults(judgeResults, eurovision->states);
+    if(res!=EUROVISION_SUCCESS){
+        return res;
     }
     if(!checkName(judgeName)){
         return EUROVISION_INVALID_NAME;
@@ -401,6 +429,10 @@ EurovisionResult eurovisionAddVote(Eurovision eurovision, int stateGiver,
     if (!giver_state){
         return EUROVISION_STATE_NOT_EXIST;
     }
+    State taker_state = mapGet(eurovision->states,&stateTaker);
+    if (!taker_state){
+        return EUROVISION_STATE_NOT_EXIST;
+    }
     Map state_voting_list=getVotesList(giver_state);
     //int curr_vote = *(int*)mapGet(giver_state->votes,&stateTaker);
     int curr_vote = *(int*)mapGet(state_voting_list,&stateTaker);
@@ -426,6 +458,10 @@ EurovisionResult eurovisionRemoveVote(Eurovision eurovision, int stateGiver,
     }
     State giver_state = mapGet(eurovision->states,&stateGiver);
     if (!giver_state){
+        return EUROVISION_STATE_NOT_EXIST;
+    }
+    State taker_state = mapGet(eurovision->states,&stateTaker);
+    if (!taker_state){
         return EUROVISION_STATE_NOT_EXIST;
     }
     Map state_voting_list=getVotesList(giver_state);
