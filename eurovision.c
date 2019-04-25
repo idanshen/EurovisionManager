@@ -715,5 +715,3 @@ List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
     return final_results_names;
 }
 
-void eurovisionDestroy(Eurovision eurovision){}
-
