@@ -360,8 +360,11 @@ EurovisionResult eurovisionRemoveState(Eurovision eurovision, int stateId){
     if(result==MAP_ITEM_DOES_NOT_EXIST){
         return EUROVISION_STATE_NOT_EXIST;
     }
+<<<<<<< HEAD
 
     mapRemove(eurovision->states,&stateId); //TODO: check results
+=======
+>>>>>>> master
     EurovisionResult update_result=updateStatesVoteMaps(eurovision->states, \
             stateId,REMOVE);
     return update_result;
@@ -382,11 +385,11 @@ EurovisionResult eurovisionAddJudge(Eurovision eurovision, int judgeId,
     if(res!=EUROVISION_SUCCESS){
         return res;
     }
-    if(!checkName(judgeName)){
-        return EUROVISION_INVALID_NAME;
-    }
     if(mapContains(eurovision->judges,&judgeId)){
         return EUROVISION_JUDGE_ALREADY_EXIST;
+    }
+    if(!checkName(judgeName)){
+        return EUROVISION_INVALID_NAME;
     }
     Judge new_judge = judgeCreate(judgeId, judgeName,judgeResults);
     if(!new_judge){
