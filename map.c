@@ -37,7 +37,7 @@ Map mapCreate(copyMapDataElements copyDataElement,
         return NULL;
     }
     map->base = NULL;
-    map->node_iterator = malloc(sizeof(*map->node_iterator));
+    map->node_iterator = malloc(sizeof(*(map->node_iterator)));
     if(!map->node_iterator) {
         free(map->node_iterator);
         free(map);
@@ -117,7 +117,9 @@ void mapDestroy(Map map){
     if(map==NULL){
         return;
     }
-    mapClear(map);
+    MapResult res=mapClear(map);
+    free(map->base);
+    free(map->node_iterator);
     free(map);
 }
 
