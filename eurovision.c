@@ -286,7 +286,7 @@ EurovisionResult eurovisionRemoveState(Eurovision eurovision, int stateId){
     if(!eurovision){
         return EUROVISION_NULL_ARGUMENT;
     }
-    mapRemove(eurovision->states,&stateId);
+    mapRemove(eurovision->states,&stateId); //TODO: check results
     EurovisionResult update_result=updateStatesVoteMaps(eurovision->states, \
             stateId,REMOVE);
     return update_result;
@@ -614,3 +614,6 @@ List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
     }
     return final_results_names;
 }
+
+void eurovisionDestroy(Eurovision eurovision){}
+
