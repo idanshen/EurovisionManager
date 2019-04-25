@@ -134,20 +134,20 @@ Map mapCopy(Map map){
                           newCompareKey);
     MAP_FOREACH(MapKeyElement, iterator, map){
         MapDataElement data_ptr=mapGet(map,iterator);
-        MapDataElement new_data=malloc(sizeof(*new_data));
-        if(new_data==NULL){
-            return NULL;
-        }
-        MapKeyElement new_key=malloc(sizeof(*new_key));
-        if(new_key==NULL){
-            return NULL;
-        }
-        new_data=map->copyData(data_ptr);
-        new_key=map->copyKey(iterator);
-        mapPut(new_map,new_key,new_data);
+        //MapDataElement new_data=malloc(sizeof(*new_data));
+        //if(new_data==NULL){
+         //   return NULL;
+        //}
+        //MapKeyElement new_key=malloc(sizeof(*new_key));
+        //if(new_key==NULL){
+         //   return NULL;
+        //}
+        //new_data=map->copyData(data_ptr);
+        //new_key=map->copyKey(iterator);
+        mapPut(new_map,iterator,data_ptr);
     }
 
-    return map;
+    return new_map;
 }
 
 MapResult mapPut(Map map, MapKeyElement keyElement, MapDataElement dataElement){
@@ -164,6 +164,7 @@ MapResult mapPut(Map map, MapKeyElement keyElement, MapDataElement dataElement){
     new->next = NULL;
     if (!map->base){
         map->base = new;
+        map->node_iterator=new; ////////////////IMPORTANT
         return MAP_SUCCESS;
     }
     else {

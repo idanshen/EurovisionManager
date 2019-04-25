@@ -334,6 +334,7 @@ bool testRunGetFriendlyStates() {
   CHECK(strcmp(current, "moldova - russia"), 0);
 
   listDestroy(friendlies);
+
   eurovisionDestroy(eurovision);
   return true;
 }
