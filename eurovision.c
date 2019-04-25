@@ -235,6 +235,13 @@ Eurovision eurovisionCreate(){
     return new_eurovision;
 }
 
+void eurovisionDestroy(Eurovision eurovision){
+    mapDestroy(eurovision->states);
+    mapDestroy(eurovision->judges);
+    free(eurovision);
+    return;
+
+}
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 static EurovisionResult updateStatesVoteMaps(Map states,int stateId,
