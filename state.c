@@ -122,6 +122,15 @@ Map getVotesList(State state){
     Map state_list = state->votes;
     return state_list;
 }
+MapResult changeVotesList(State state,Map new_votes_list){
+    if(!new_votes_list || !state){
+        return MAP_NULL_ARGUMENT;
+    }
+    mapDestroy(state->votes);
+    state->votes=new_votes_list;
+    return MAP_SUCCESS;
+
+}
 
 int* stateGetTopTen(State state){
     int* votes = (int*)malloc(sizeof(int)*10);

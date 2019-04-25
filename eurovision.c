@@ -268,6 +268,9 @@ void eurovisionDestroy(Eurovision eurovision){
 static EurovisionResult updateStatesVoteMaps(Map states,int stateId,
         int action){
     int ID=stateId;
+    int default_value=0;
+    State last_state=NULL;
+    int num_of_states=mapGetSize(states);
     MAP_FOREACH(int *,IDiterator,states){
         State current_state=mapGet(states,IDiterator);
         if(current_state==NULL){
@@ -281,7 +284,20 @@ static EurovisionResult updateStatesVoteMaps(Map states,int stateId,
                 return EUROVISION_STATE_NOT_EXIST;
             }
         }
+        if(*IDiterator==stateId && num_of_states>1){
+            Map updated_votes_list=getVotesList(last_state);
+            Map new_votes_list=mapCopyOnlyKeys(updated_votes_list,copyID,
+                                               releaseID,&default_value);
+            MapResult res=changeVotesList(current_state,new_votes_list);
+            if(res!=MAP_SUCCESS){
+                return EUROVISION_NULL_ARGUMENT;
+            }
+
+        }
+        last_state=current_state;
+
     }
+
     return EUROVISION_SUCCESS;
 
 }
@@ -310,7 +326,8 @@ EurovisionResult eurovisionAddState(Eurovision eurovision, int stateId,
         deleteState(new_state);
         return EUROVISION_OUT_OF_MEMORY;
     }
-    EurovisionResult update_result=updateStatesVoteMaps(eurovision->states,stateId,ADD);
+    EurovisionResult update_result=updateStatesVoteMaps(eurovision->states,
+            stateId,ADD);
     if(update_result!=EUROVISION_SUCCESS){
         deleteState(new_state);
         return update_result==EUROVISION_OUT_OF_MEMORY? \
@@ -329,7 +346,15 @@ EurovisionResult eurovisionRemoveState(Eurovision eurovision, int stateId){
     if(!eurovision){
         return EUROVISION_NULL_ARGUMENT;
     }
+<<<<<<< HEAD
+    MapResult result=mapRemove(eurovision->states,&stateId);
+    if(result==MAP_ITEM_DOES_NOT_EXIST){
+        return EUROVISION_STATE_NOT_EXIST;
+    }
+
+=======
     mapRemove(eurovision->states,&stateId); //TODO: check results
+>>>>>>> master
     EurovisionResult update_result=updateStatesVoteMaps(eurovision->states, \
             stateId,REMOVE);
     return update_result;
