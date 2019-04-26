@@ -130,6 +130,28 @@ static int compareIDs(MapKeyElement n1, MapKeyElement n2) {
 }
 
 /**
+ * compareVotes - Function to be used by the map for comparing number of votes
+ * @param n1 - a number of votes to be compared
+ * @param n2 - a number of votes to be compared
+ * @return
+ *		A positive integer if the first element is greater;
+ * 		0 if they're equal;
+ *		A negative integer if the second element is greater.
+ */
+static int compareVotes(MapKeyElement n1, MapKeyElement n2) {
+    double res = (*(double *) n1 - *(double *) n2);
+    if (res==0){
+        return 0;
+    }
+    else if (res>0){
+        return 1;
+    }
+    else {
+        return -1;
+    }
+}
+
+/**
  * releaseJudge - free the memory occupied by a Judge instance
  * @param n - a Judge instance to be released
  */
@@ -584,13 +606,16 @@ static List mapToOrderedList(Map votes){
     int last_max_value=0;
     int index=0;
     int size_of_votes=mapGetSize(votes);
-    int* ordered_winners=malloc(sizeof(*ordered_winners)*size_of_votes);
+    int* ordered_winners=(int*)malloc(sizeof(int)*size_of_votes);
     if(ordered_winners==NULL){
         return NULL;
     }
+    int * max_key;
+    int * current_max_value;
     while(mapGetSize(votes)!=0){
-        int * max_key=mapMaxData(votes,compareIDs);
-        int * current_max_value=mapGet(votes,max_key);
+        max_key=mapMaxData(votes,compareVotes);
+        printf("%d\n", *(int*)max_key);
+        current_max_value=mapGet(votes,max_key);
         ordered_winners[index]=*(int*)copyID(max_key);
         if(*current_max_value==last_max_value){
             same_num_of_votes_counter++;
@@ -769,6 +794,8 @@ List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
             return NULL;
         }
     }
+    mapDestroy(judges_score);
+    mapDestroy(states_score);
     List final_results_keys = mapToOrderedList(overall_score);
     List final_results_names = keyListToNameList(final_results_keys,
             eurovision->states);
