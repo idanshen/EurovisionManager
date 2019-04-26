@@ -453,10 +453,8 @@ EurovisionResult eurovisionAddVote(Eurovision eurovision, int stateGiver,
         return EUROVISION_STATE_NOT_EXIST;
     }
     Map state_voting_list=getVotesList(giver_state);
-    //int curr_vote = *(int*)mapGet(giver_state->votes,&stateTaker);
     int curr_vote = *(int*)mapGet(state_voting_list,&stateTaker);
     curr_vote++;
-    //MapResult result = mapPut(giver_state->votes,&stateTaker, &curr_vote);
     MapResult result = mapPut(state_voting_list,&stateTaker, &curr_vote);
     if (result==MAP_SUCCESS){ ////// what about other results?
         return EUROVISION_SUCCESS;

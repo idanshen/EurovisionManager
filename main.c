@@ -13,7 +13,6 @@
   } while (0);
 
 int main(int argc, char *argv[]) {
-
     TEST(testAddState)
     TEST(testRemoveState)
     TEST(testAddJudge)
@@ -22,7 +21,7 @@ int main(int argc, char *argv[]) {
     TEST(testRemoveVote)
     TEST(testRunContest)
     TEST(testRunAudienceFavorite)
-//    TEST(testRunGetFriendlyStates)
+    TEST(testRunGetFriendlyStates)
     return 0;
 }
 
