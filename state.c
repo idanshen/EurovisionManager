@@ -138,10 +138,15 @@ int* stateGetTopTen(State state){
         return NULL;
     }
     Map state_votes = mapCopy(getVotesList(state));
-    while(mapGetSize(state_votes)>0){
-        int * max_key = mapMaxData(state_votes,compareIDs);
-        int * current_max_value = mapGet(state_votes,max_key);
-        votes[index]=*(int*)copyVotesOrID(max_key);
+    int * max_key;
+    int * current_max_value;
+    while((mapGetSize(state_votes)>0)&&(index<10)){
+        max_key = mapMaxData(state_votes,compareIDs);
+        current_max_value = mapGet(state_votes,max_key);
+        votes[index]=*max_key;
+        if(*current_max_value==0){
+            break;
+        }
         if(*current_max_value==last_max_value){
             same_num_of_votes_counter++;
             for(int i=index;i+same_num_of_votes_counter>index;i--){

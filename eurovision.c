@@ -603,7 +603,7 @@ static List VotesArrayToList(int* votes_array, int n){
  */
 static List mapToOrderedList(Map votes){
     int same_num_of_votes_counter=0;
-    int last_max_value=0;
+    double last_max_value=-1;
     int index=0;
     int size_of_votes=mapGetSize(votes);
     int* ordered_winners=(int*)malloc(sizeof(int)*size_of_votes);
@@ -611,15 +611,14 @@ static List mapToOrderedList(Map votes){
         return NULL;
     }
     int * max_key;
-    int * current_max_value;
+    double * current_max_value;
     while(mapGetSize(votes)!=0){
         max_key=mapMaxData(votes,compareVotes);
-        printf("%d\n", *(int*)max_key);
-        current_max_value=mapGet(votes,max_key);
+        current_max_value=(double*)mapGet(votes,max_key);
         ordered_winners[index]=*(int*)copyID(max_key);
         if(*current_max_value==last_max_value){
             same_num_of_votes_counter++;
-            for(int i=index;i+same_num_of_votes_counter>=index;i--){
+            for(int i=index;i+same_num_of_votes_counter>index;i--){
                 if(ordered_winners[i]<ordered_winners[i-1]){
                     int temp=ordered_winners[i-1];
                     ordered_winners[i-1]=ordered_winners[i];
