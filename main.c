@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "eurovisionTests.h"
 
+
 #define TEST(t)                                                                \
   do {                                                                         \
     printf("Testing %s ...\n", #t);                                            \
@@ -14,6 +15,7 @@
 
 int main(int argc, char *argv[]) {
 
+    /*
     TEST(testAddState)
     TEST(testRemoveState)
     TEST(testAddJudge)
@@ -22,7 +24,11 @@ int main(int argc, char *argv[]) {
     TEST(testRemoveVote)
     TEST(testRunContest)
     TEST(testRunAudienceFavorite)
-//    TEST(testRunGetFriendlyStates)
+    TEST(testRunGetFriendlyStates)
+     */
+    TEST(test1_runContest);
+    TEST(test1_runAudience);
+    TEST(test1_runFriendly);
     return 0;
 }
 

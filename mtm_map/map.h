@@ -273,6 +273,7 @@ MapKeyElement mapMaxData(Map map, compareMapDataElements compare);
 Map mapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
                     freeMapDataElements newFreeData, MapDataElement defaultValue);
 
+MapResult SetIterator(Map map,MapKeyElement spot);
 /*!
 * Macro for iterating over a map.
 * Declares a new iterator for the loop.

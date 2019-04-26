@@ -294,11 +294,19 @@ static MapResult updateNewStateVoteMap(Map states,State new_state){
             return res;
         }
     }
+    int new_state_ID=stateGetID(new_state);
+    MapResult res=SetIterator(states,&new_state_ID);
+    if(res!=MAP_SUCCESS){
+        return MAP_ITEM_DOES_NOT_EXIST;
+    }
     return MAP_SUCCESS;
 }
 static EurovisionResult updateStatesVoteMaps(Map states,int stateId,
         int action){
     int ID=stateId;
+    if(stateId==650420){
+        printf("yas queen\n");
+    }
     int num_of_states=mapGetSize(states);
     MAP_FOREACH(int *,IDiterator,states){
         State current_state=mapGet(states,IDiterator);
@@ -306,12 +314,14 @@ static EurovisionResult updateStatesVoteMaps(Map states,int stateId,
             return EUROVISION_STATE_NOT_EXIST;
         }
         if(*IDiterator==stateId && num_of_states>1 && action==ADD){
+
                 MapResult update_result = updateNewStateVoteMap(states, current_state);
                 if (update_result != MAP_SUCCESS) {
                     return EUROVISION_OUT_OF_MEMORY;
                 }
             }
         else {
+
             if (addOrRemoveNewStateToVotes(current_state, &ID, action)
             != MAP_SUCCESS) {
                 if (action == ADD) {
@@ -521,6 +531,10 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
     double default_value = 0.;
     Map voters_score = mapCopyOnlyKeys(eurovision->states, copyVote,
                                        releaseVote, &default_value);
+    MAP_FOREACH(int*,itzubi,voters_score){
+        int boop=*itzubi;
+        printf("now bla %d\n",boop);
+    }
     if (!voters_score){
         free(voters_score);
         return NULL;

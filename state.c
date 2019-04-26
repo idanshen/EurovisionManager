@@ -183,3 +183,10 @@ char* stateGetName(State state){
     }
     return state->name;
 }
+
+int stateGetID(State state){
+    if(!state){
+        return -1;
+    }
+    return state->ID;
+}

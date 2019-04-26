@@ -77,6 +77,8 @@ int* stateGetTopTen(State state);
  */
 char* stateGetName(State state);
 
+int stateGetID(State state);
+
 MapResult changeVotesList(State state,Map new_votes_list);
 
 #endif //EUROVISION_C_STATE_H

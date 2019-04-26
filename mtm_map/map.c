@@ -313,3 +313,12 @@ Map mapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
     free(new_key);
     return new_map;
 }
+
+MapResult SetIterator(Map map,MapKeyElement spot){
+    MAP_FOREACH(MapKeyElement,iterator,map){
+        if(map->compareKey(iterator,spot)==0){
+            return MAP_SUCCESS;
+        }
+    }
+    return MAP_ITEM_DOES_NOT_EXIST;
+}
