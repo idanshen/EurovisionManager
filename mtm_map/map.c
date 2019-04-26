@@ -91,16 +91,10 @@ MapResult mapClear(Map map){
         return MAP_NULL_ARGUMENT;
     }
     Node node=map->base;
-    Node next_node;
     while(node!=NULL){
-        next_node=node->next;
-        map->freeData(node->data);
-        map->freeKey(node->key);
-        free(node);
-        node=next_node;
+        mapRemove(map,map->base->key);
+        node=map->base;
     }
-    map->base=NULL;
-    free(node);
     return MAP_SUCCESS;
 }
 

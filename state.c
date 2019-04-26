@@ -174,6 +174,7 @@ int* stateGetTopTen(State state){
             votes[index+j] = EMPTY;
         }
     }
+    mapDestroy(state_votes);
     return votes;
 }
 
