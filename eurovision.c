@@ -720,9 +720,6 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
     char* second_state_name=NULL;
     char* new_str=NULL;
     MAP_FOREACH(int *,iterator,euro_states){
-        if(*iterator==3){
-            printf("h\n");
-        }
         State current_state=mapGet(euro_states,iterator);
         if(!current_state){
             mapDestroy(euro_states);
@@ -735,7 +732,7 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
             listDestroy(friendly_states);
             return NULL;
         }
-        if(top_ten_voted[0]==-1){
+        if(top_ten_voted[0]==-1 || top_ten_voted[0]<*iterator){
             continue;
         }
         State examined_state=mapGet(euro_states,&top_ten_voted[0]);
