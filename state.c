@@ -144,7 +144,7 @@ int* stateGetTopTen(State state){
         votes[index]=*(int*)copyVotesOrID(max_key);
         if(*current_max_value==last_max_value){
             same_num_of_votes_counter++;
-            for(int i=index;i+same_num_of_votes_counter>=index;i--){
+            for(int i=index;i+same_num_of_votes_counter>index;i--){
                 if(votes[i]<votes[i-1]){
                     int temp=votes[i-1];
                     votes[i-1]=votes[i];

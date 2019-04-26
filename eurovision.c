@@ -93,7 +93,7 @@ static void releaseString(ListElement n) {
     free(n);
 }
 
-enum Size {FIRST_IS_GREATER=-1,SAME_SIZE=0,SECOND_IS_GREATER=1};
+enum Size {FIRST_IS_GREATER=1,SAME_SIZE=0,SECOND_IS_GREATER=-1};
 static int sortStrings(ListElement str1,ListElement str2){
     if(!str1|| !str2){
         return LIST_NULL_ARGUMENT;
@@ -311,11 +311,11 @@ static EurovisionResult updateStatesVoteMaps(Map states,int stateId,
             return EUROVISION_STATE_NOT_EXIST;
         }
         if(*IDiterator==stateId && num_of_states>1 && action==ADD){
-            MapResult update_result=updateNewStateVoteMap(states,current_state);
-            if(update_result!=MAP_SUCCESS){
-                return EUROVISION_OUT_OF_MEMORY;
+                MapResult update_result = updateNewStateVoteMap(states, current_state);
+                if (update_result != MAP_SUCCESS) {
+                    return EUROVISION_OUT_OF_MEMORY;
+                }
             }
-        }
         else {
             if (addOrRemoveNewStateToVotes(current_state, &ID, action)
             != MAP_SUCCESS) {
@@ -706,12 +706,14 @@ static char* combineStrings(char* str1, char* str2){
         strcat(new_str,str2);
 
     }
-    strcat(new_str,",");
+    //strcat(new_str,",");
 
     return new_str;
 }
 List eurovisionRunGetFriendlyStates(Eurovision eurovision){
-    Map euro_states=mapCopy(eurovision->states);
+    //TODO: fix mapCopy!!!!!!!!
+    //Map euro_states=mapCopy(eurovision->states);
+    Map euro_states=eurovision->states;
     List friendly_states=listCreate(copyString,releaseString);
     int* top_ten_voted=NULL;
     int* second_top_ten_voted=NULL;
@@ -719,6 +721,9 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
     char* second_state_name=NULL;
     char* new_str=NULL;
     MAP_FOREACH(int *,iterator,euro_states){
+        if(*iterator==3){
+            printf("h\n");
+        }
         State current_state=mapGet(euro_states,iterator);
         if(!current_state){
             mapDestroy(euro_states);
@@ -731,14 +736,20 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
             listDestroy(friendly_states);
             return NULL;
         }
+        if(top_ten_voted[0]==-1){
+            continue;
+        }
         State examined_state=mapGet(euro_states,&top_ten_voted[0]);
         if(!examined_state){
             mapDestroy(euro_states);
             listDestroy(friendly_states);
             return NULL;
         }
+        int   zero=0;
+        State boop_state=mapGet(euro_states,&zero);
         second_top_ten_voted=stateGetTopTen(examined_state);
         if(!second_top_ten_voted){
+            free(top_ten_voted);
             mapDestroy(euro_states);
             listDestroy(friendly_states);
             return NULL;
@@ -747,7 +758,7 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
             state_name=stateGetName(current_state);
             second_state_name=stateGetName(examined_state);
             new_str=combineStrings(state_name,second_state_name);
-            ListResult add_res=listInsertAfterCurrent(friendly_states,new_str);
+            ListResult add_res=listInsertLast(friendly_states,new_str);
             if(add_res!=LIST_SUCCESS){
                 free(new_str);
                 mapDestroy(euro_states);
@@ -756,8 +767,10 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
             }
             free(new_str);
         }
+        free(top_ten_voted);
+        free(second_top_ten_voted);
     }
-    mapDestroy(euro_states);
+    //mapDestroy(euro_states);
     ListResult result=listSort(friendly_states,sortStrings);
     if(result!=LIST_SUCCESS){
         return NULL;
