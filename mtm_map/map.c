@@ -37,12 +37,6 @@ Map mapCreate(copyMapDataElements copyDataElement,
         return NULL;
     }
     map->base = NULL;
-    map->node_iterator = malloc(sizeof(*(map->node_iterator)));
-    if(!map->node_iterator) {
-        free(map->node_iterator);
-        free(map);
-        return NULL;
-    }
     map->node_iterator=NULL;
 
     map->copyData = copyDataElement;
@@ -97,19 +91,17 @@ MapResult mapClear(Map map){
         return MAP_NULL_ARGUMENT;
     }
     Node node=map->base;
+    Node next_node;
     while(node!=NULL){
-        MapDataElement node_data=node->data;
-        MapKeyElement  node_key=node->key;
-        Node next_node=node->next;
-        map->freeData(node_data);
-        map->freeKey(node_key);
+        next_node=node->next;
+        map->freeData(node->data);
+        map->freeKey(node->key);
         free(node);
         node=next_node;
-
     }
     map->base=NULL;
+    free(node);
     return MAP_SUCCESS;
-
 }
 
 void mapDestroy(Map map){
@@ -164,12 +156,15 @@ MapResult mapPut(Map map, MapKeyElement keyElement, MapDataElement dataElement){
     new->next = NULL;
     if (!map->base){
         map->base = new;
-        map->node_iterator=new; ////////////////IMPORTANT
+        map->node_iterator=new;
         return MAP_SUCCESS;
     }
     else {
         if (map->compareKey(map->base->key, keyElement)==0){
+            free(map->base->data);
             map->base->data = map->copyData(dataElement);
+            free(new->key);
+            free(new->data);
             free(new);
             return MAP_SUCCESS;
         }
@@ -185,7 +180,10 @@ MapResult mapPut(Map map, MapKeyElement keyElement, MapDataElement dataElement){
                 return MAP_SUCCESS;
             }
             else if (map->compareKey(map->node_iterator->next->key, keyElement)==0){
+                free(map->node_iterator->next->data);
                 map->node_iterator->next->data = map->copyData(dataElement);
+                free(new->key);
+                free(new->data);
                 free(new);
                 return MAP_SUCCESS;
             }
@@ -223,11 +221,14 @@ MapResult mapRemove(Map map, MapKeyElement keyElement){
     if((!keyElement) || (!map)){
         return MAP_NULL_ARGUMENT;
     }
+    if(!map->base){
+        return MAP_ITEM_DOES_NOT_EXIST;
+    }
     if (map->compareKey(map->base->key, keyElement)==0){
         map->freeKey(map->base->key);
         map->freeData(map->base->data);
         Node temp_pointer = map->base->next;
-        //free(map->base); TODO: idan-think about it
+        free(map->base); //TODO: idan-think about it
         map->base = temp_pointer;
         return MAP_SUCCESS;
     }
@@ -296,21 +297,15 @@ Map mapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
     compareMapKeyElements newCompareKey=map->compareKey;
     Map new_map=mapCreate(newCopyData,newCopyKey,newFreeData,newFreeKey,
                           newCompareKey);
-    MapDataElement new_data=malloc(sizeof(defaultValue));
-    if(new_data==NULL){
-        return NULL;
+
+    Node next_ptr=map->base;
+    if(next_ptr==NULL){
+        return new_map;
     }
-    new_data=new_map->copyData(defaultValue);
-    MapKeyElement new_key=malloc(sizeof(map->base->key));
-    if(new_key==NULL){
-        return NULL;
+    while(next_ptr!=NULL){
+        mapPut(new_map,next_ptr->key,defaultValue);
+        next_ptr=next_ptr->next;
     }
-    MAP_FOREACH(MapKeyElement, iterator, map){
-        new_key=map->copyKey(iterator);
-        mapPut(new_map,new_key,new_data);
-    }
-    free(new_data);
-    free(new_key);
     return new_map;
 }
 
