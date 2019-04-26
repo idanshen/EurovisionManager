@@ -77,7 +77,9 @@ static ListElement copyString(ListElement n) {
     if (!n) {
         return NULL;
     }
-    char *copy = malloc(sizeof(*copy));
+
+    int string_len=(int)strlen((char*)n);
+    char *copy = malloc(sizeof(char)*string_len+1);
     if (!copy) {
         return NULL;
     }
@@ -796,9 +798,9 @@ List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
     List final_results_keys = mapToOrderedList(overall_score);
     List final_results_names = keyListToNameList(final_results_keys,
             eurovision->states);
-    free(final_results_keys);
+    listDestroy(final_results_keys);
     if (!final_results_names){
-        free(final_results_names);
+        listDestroy(final_results_names);
         return NULL;
     }
     return final_results_names;
