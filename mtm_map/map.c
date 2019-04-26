@@ -126,16 +126,6 @@ Map mapCopy(Map map){
                           newCompareKey);
     MAP_FOREACH(MapKeyElement, iterator, map){
         MapDataElement data_ptr=mapGet(map,iterator);
-        //MapDataElement new_data=malloc(sizeof(*new_data));
-        //if(new_data==NULL){
-         //   return NULL;
-        //}
-        //MapKeyElement new_key=malloc(sizeof(*new_key));
-        //if(new_key==NULL){
-         //   return NULL;
-        //}
-        //new_data=map->copyData(data_ptr);
-        //new_key=map->copyKey(iterator);
         mapPut(new_map,iterator,data_ptr);
     }
 
@@ -227,9 +217,15 @@ MapResult mapRemove(Map map, MapKeyElement keyElement){
     if (map->compareKey(map->base->key, keyElement)==0){
         map->freeKey(map->base->key);
         map->freeData(map->base->data);
-        Node temp_pointer = map->base->next;
-        free(map->base); //TODO: idan-think about it
-        map->base = temp_pointer;
+        //Node temp_pointer = map->base->next;
+        Node temp_pointer = map->base;
+        //free(map->base); //TODO: idan-think about it
+        map->base = map->base->next;
+        map->node_iterator=map->base;
+        map->freeKey(temp_pointer->key);
+        map->freeData(temp_pointer->data);
+        free(temp_pointer);
+        //map->base=temp_pointer;
         return MAP_SUCCESS;
     }
     MAP_FOREACH(MapKeyElement, iterator, map){
@@ -237,7 +233,12 @@ MapResult mapRemove(Map map, MapKeyElement keyElement){
             if (map->compareKey(map->node_iterator->next->key, keyElement)==0){
                 map->freeKey(map->node_iterator->next->key);
                 map->freeData(map->node_iterator->next->data);
+                //Node temp_pointer=map->node_iterator->next;
                 Node temp_pointer = map->node_iterator->next->next;
+                //map->node_iterator->next=map->node_iterator->next->next;
+                //map->freeKey(temp_pointer->key);
+                //map->freeData(temp_pointer->data);
+                //free(temp_pointer);
                 free(map->node_iterator->next);
                 map->node_iterator->next = temp_pointer;
                 return MAP_SUCCESS;
