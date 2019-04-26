@@ -1,5 +1,5 @@
 #include "eurovision.h"
-#include "map.h"
+#include "mtm_map/map.h"
 #include "judge.h"
 #include "state.h"
 #include "list.h"
