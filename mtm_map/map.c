@@ -297,14 +297,14 @@ Map mapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
     compareMapKeyElements newCompareKey=map->compareKey;
     Map new_map=mapCreate(newCopyData,newCopyKey,newFreeData,newFreeKey,
                           newCompareKey);
-    MapKeyElement new_key=malloc(sizeof(map->base->key));
-    if(new_key==NULL){
-        return NULL;
+
+    Node next_ptr=map->base;
+    if(next_ptr==NULL){
+        return new_map;
     }
-    MAP_FOREACH(MapKeyElement, iterator, map){
-        new_key=map->copyKey(iterator);
-        mapPut(new_map,new_key,defaultValue);
+    while(next_ptr!=NULL){
+        mapPut(new_map,next_ptr->key,defaultValue);
+        next_ptr=next_ptr->next;
     }
-    free(new_key);
     return new_map;
 }
