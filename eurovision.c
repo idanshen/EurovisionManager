@@ -556,7 +556,6 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
         }
         for (int i=0; i<10;i++){
             if (votes[i]!=EMPTY) {
-                int boop=votes[i];
                 score_placeholder = *(double *)mapGet(voters_score, &votes[i]);
                 score_placeholder = score_placeholder + score[i];
                 MapResult res = mapPut(voters_score, &votes[i], &score_placeholder);

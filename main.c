@@ -24,15 +24,14 @@ int main(int argc, char *argv[]) {
     TEST(testRunContest)
     TEST(testRunAudienceFavorite)
     TEST(testRunGetFriendlyStates)
-<<<<<<< HEAD
+
      */
     TEST(test1_runContest);
     TEST(test1_runAudience);
     TEST(test1_runFriendly);
     //TEST(testRunAudienceFavorite)
     //TEST(testRunGetFriendlyStates)
-=======
->>>>>>> master
+
     return 0;
 }
 

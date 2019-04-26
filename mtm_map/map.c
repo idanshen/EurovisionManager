@@ -216,8 +216,8 @@ MapResult mapRemove(Map map, MapKeyElement keyElement){
         //free(map->base); //TODO: idan-think about it
         map->base = map->base->next;
         map->node_iterator=map->base;
-        map->freeKey(temp_pointer->key);
-        map->freeData(temp_pointer->data);
+        //map->freeKey(temp_pointer->key);
+        //map->freeData(temp_pointer->data);
         free(temp_pointer);
         //map->base=temp_pointer;
         return MAP_SUCCESS;
@@ -227,14 +227,14 @@ MapResult mapRemove(Map map, MapKeyElement keyElement){
             if (map->compareKey(map->node_iterator->next->key, keyElement)==0){
                 map->freeKey(map->node_iterator->next->key);
                 map->freeData(map->node_iterator->next->data);
-                //Node temp_pointer=map->node_iterator->next;
-                Node temp_pointer = map->node_iterator->next->next;
-                //map->node_iterator->next=map->node_iterator->next->next;
+                Node temp_pointer=map->node_iterator->next;
+                //Node temp_pointer = map->node_iterator->next->next;
+                map->node_iterator->next=map->node_iterator->next->next;
                 //map->freeKey(temp_pointer->key);
                 //map->freeData(temp_pointer->data);
-                //free(temp_pointer);
-                free(map->node_iterator->next);
-                map->node_iterator->next = temp_pointer;
+                free(temp_pointer);
+                //free(map->node_iterator->next);
+                //map->node_iterator->next = temp_pointer;
                 return MAP_SUCCESS;
             }
         }
