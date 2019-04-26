@@ -248,7 +248,6 @@ EurovisionResult judgeRemoveByVote(Map judges, int stateId){
  *  False otherwise
  */
 static EurovisionResult checkResults(int* results, Map states){
-    bool flag = true;
     for (int i = 0; i<10; i++){
         if (results[i]<0){
             return EUROVISION_INVALID_ID;
@@ -284,8 +283,6 @@ void eurovisionDestroy(Eurovision eurovision){
     mapDestroy(eurovision->states);
     mapDestroy(eurovision->judges);
     free(eurovision);
-    return;
-
 }
 
 /////////////////////////////////////////////////////////////
@@ -302,8 +299,6 @@ static MapResult updateNewStateVoteMap(Map states,State new_state){
 static EurovisionResult updateStatesVoteMaps(Map states,int stateId,
         int action){
     int ID=stateId;
-    int default_value=0;
-    State last_state=NULL;
     int num_of_states=mapGetSize(states);
     MAP_FOREACH(int *,IDiterator,states){
         State current_state=mapGet(states,IDiterator);
@@ -327,9 +322,6 @@ static EurovisionResult updateStatesVoteMaps(Map states,int stateId,
                 }
             }
         }
-
-        last_state=current_state;
-
     }
 
     return EUROVISION_SUCCESS;
@@ -741,8 +733,6 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
             listDestroy(friendly_states);
             return NULL;
         }
-        int   zero=0;
-        State boop_state=mapGet(euro_states,&zero);
         second_top_ten_voted=stateGetTopTen(examined_state);
         if(!second_top_ten_voted){
             free(top_ten_voted);

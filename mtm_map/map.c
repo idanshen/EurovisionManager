@@ -291,18 +291,17 @@ Map mapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
     if(map==NULL) {
         return NULL;
     }
-
     copyMapKeyElements newCopyKey=map->copyKey;
     freeMapKeyElements newFreeKey=map->freeKey;
     compareMapKeyElements newCompareKey=map->compareKey;
     Map new_map=mapCreate(newCopyData,newCopyKey,newFreeData,newFreeKey,
                           newCompareKey);
-    MapDataElement new_data=malloc(sizeof(*new_data));
+    MapDataElement new_data=malloc(sizeof(defaultValue));
     if(new_data==NULL){
         return NULL;
     }
     new_data=new_map->copyData(defaultValue);
-    MapKeyElement new_key=malloc(sizeof(*new_key));
+    MapKeyElement new_key=malloc(sizeof(map->base->key));
     if(new_key==NULL){
         return NULL;
     }
