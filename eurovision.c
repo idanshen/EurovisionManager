@@ -231,9 +231,6 @@ EurovisionResult judgeRemoveByVote(Map judges, int stateId){
         for (int i = 0; i<10; i++){
 
             if (judgeGetVotes(cur_judge)[i]==stateId){
-                if(stateId==267914){
-                    printf("ha\n");
-                }
                 mapRemove(judges,iterator);
                 break;
             }

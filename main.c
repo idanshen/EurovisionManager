@@ -26,8 +26,8 @@ int main(int argc, char *argv[]) {
     TEST(testRunGetFriendlyStates)
 
      */
-    TEST(test1_runContest);
-    TEST(test1_runAudience);
+    //TEST(test1_runContest);
+    //TEST(test1_runAudience);
     TEST(test1_runFriendly);
     //TEST(testRunAudienceFavorite)
     //TEST(testRunGetFriendlyStates)
