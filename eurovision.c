@@ -3,6 +3,7 @@
 #include "judge.h"
 #include "state.h"
 #include "list.h"
+#include "set.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -225,16 +226,23 @@ EurovisionResult judgeRemoveByVote(Map judges, int stateId){
     if(stateId<0){
         return EUROVISION_INVALID_ID;
     }
+    Set to_remove = setCreate(copyID,releaseID,compareIDs);
     Judge cur_judge;
     MAP_FOREACH(int*, iterator, judges){
         cur_judge = (Judge)mapGet(judges, iterator);
         for (int i = 0; i<10; i++){
-
             if (judgeGetVotes(cur_judge)[i]==stateId){
+<<<<<<< HEAD
                 mapRemove(judges,iterator);
+=======
+                setAdd(to_remove,(SetElement)iterator);
+>>>>>>> master
                 break;
             }
         }
+    }
+    SET_FOREACH(int*,iterator,to_remove){
+        mapRemove(judges,(MapKeyElement)iterator);
     }
     return EUROVISION_SUCCESS;
 }
@@ -520,7 +528,7 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
     }
     Map* voters;
     if (voters_flag==JUDGES){
-        voters = &eurovision->judges; //TODO:check this
+        voters = &eurovision->judges;
     }
     else{
         voters = &eurovision->states;
@@ -529,10 +537,6 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
     double default_value = 0;
     Map voters_score = mapCopyOnlyKeys(eurovision->states, copyVote,
                                        releaseVote, &default_value);
-    MAP_FOREACH(int*,itzubi,voters_score){
-        int boop=*itzubi;
-        printf("now bla %d\n",boop);
-    }
     if (!voters_score){
         free(voters_score);
         return NULL;
@@ -806,6 +810,15 @@ List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
             return NULL;
         }
     }
+/*
+    int temp1;
+    double temp2;
+    MAP_FOREACH(MapKeyElement, iterator, judges_score){
+        temp1 = *(int*)iterator;
+        temp2 = *(double*)mapGet(judges_score,iterator);
+        printf("country %d have %lf votes\n", temp1, temp2);
+    }
+*/
     mapDestroy(judges_score);
     mapDestroy(states_score);
     List final_results_keys = mapToOrderedList(overall_score);

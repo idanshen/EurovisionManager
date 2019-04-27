@@ -270,27 +270,27 @@ bool testRemoveVote() {
  * 9:  0.375  * 0.4 + 0.6667 * 0.6 = 0.55 (germany)
  */
 bool testRunContest() {
-  Eurovision eurovision = setupEurovision();
-  setupEurovisionStates(eurovision);
-  setupEurovisionJudges(eurovision);
-  setupEurovisionVotes2(eurovision);
+    Eurovision eurovision = setupEurovision();
+    setupEurovisionStates(eurovision);
+    setupEurovisionJudges(eurovision);
+    setupEurovisionVotes2(eurovision);
 
-  List ranking = eurovisionRunContest(eurovision, 40);
-  CHECK(listGetSize(ranking), 16);
-  char *current = (char*)listGetFirst(ranking);
-  CHECK(strcmp(current, "united kingdom"), 0);
-  current = (char*)listGetNext(ranking);
-  CHECK(strcmp(current, "moldova"), 0);
-  current = (char*)listGetNext(ranking);
-  CHECK(strcmp(current, "russia"), 0);
-  current = (char*)listGetNext(ranking);
-  CHECK(strcmp(current, "cyprus"), 0);
-  current = (char*)listGetNext(ranking);
-  CHECK(strcmp(current, "spain"), 0);
+    List ranking = eurovisionRunContest(eurovision, 40);
+    CHECK(listGetSize(ranking), 16);
+    char *current = (char*)listGetFirst(ranking);
+    CHECK(strcmp(current, "united kingdom"), 0);
+    current = (char*)listGetNext(ranking);
+    CHECK(strcmp(current, "moldova"), 0);
+    current = (char*)listGetNext(ranking);
+    CHECK(strcmp(current, "russia"), 0);
+    current = (char*)listGetNext(ranking);
+    CHECK(strcmp(current, "cyprus"), 0);
+    current = (char*)listGetNext(ranking);
+    CHECK(strcmp(current, "spain"), 0);
 
-  listDestroy(ranking);
-  eurovisionDestroy(eurovision);
-  return true;
+    listDestroy(ranking);
+    eurovisionDestroy(eurovision);
+    return true;
 }
 
 bool testRunAudienceFavorite() {
