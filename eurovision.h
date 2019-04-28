@@ -3,6 +3,18 @@
 
 #include "list.h"
 
+/**
+* Eurovision voting system
+*
+* Implements a voting system for the Eurovision contest
+* support both states' votes and judges' votes and unlimited number of states(!)
+*
+* The following functions are available:
+*   eurovisionCreate		- Creates a new empty Eurovision voting system
+*   eurovisionDestroy		- Deletes an existing system and frees all resources
+*/
+
+/** Type used for returning error codes from map functions */
 typedef enum eurovisionResult_t {
     EUROVISION_NULL_ARGUMENT,
     EUROVISION_OUT_OF_MEMORY,
@@ -16,7 +28,7 @@ typedef enum eurovisionResult_t {
     EUROVISION_SUCCESS
 } EurovisionResult;
 
-
+/** Type for defining the system */
 typedef struct eurovision_t *Eurovision;
 
 Eurovision eurovisionCreate();
