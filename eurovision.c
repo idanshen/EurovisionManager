@@ -232,11 +232,7 @@ EurovisionResult judgeRemoveByVote(Map judges, int stateId){
         cur_judge = (Judge)mapGet(judges, iterator);
         for (int i = 0; i<10; i++){
             if (judgeGetVotes(cur_judge)[i]==stateId){
-<<<<<<< HEAD
-                mapRemove(judges,iterator);
-=======
                 setAdd(to_remove,(SetElement)iterator);
->>>>>>> master
                 break;
             }
         }
@@ -718,8 +714,6 @@ static char* combineStrings(char* str1, char* str2){
     return new_str;
 }
 List eurovisionRunGetFriendlyStates(Eurovision eurovision){
-    //TODO: fix mapCopy!!!!!!!!
-    //Map euro_states=mapCopy(eurovision->states);
     Map euro_states=eurovision->states;
     List friendly_states=listCreate(copyString,releaseString);
     int* second_top_ten_voted=NULL;
@@ -773,7 +767,6 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
         free(top_ten_voted);
         free(second_top_ten_voted);
     }
-    //mapDestroy(euro_states);
     ListResult result=listSort(friendly_states,sortStrings);
     if(result!=LIST_SUCCESS){
         return NULL;

@@ -23,21 +23,22 @@ int main(int argc, char *argv[]) {
     TEST(testRunContest)
     TEST(testRunAudienceFavorite)
     TEST(testRunGetFriendlyStates)
-<<<<<<< HEAD
 
-     */
+
     //TEST(test1_runContest);
     //TEST(test1_runAudience);
-=======
-    TEST(test1_runContest);
 
-    /*
     TEST(test1_runAudience);
->>>>>>> master
     TEST(test1_runFriendly);
+    TEST(test2_runContest);
+    TEST(test2_runAudience);
+    TEST(test2_runFriendly);
+    //TEST(test3_runContest);
+    TEST(test3_runAudience);
+    TEST(test3_runFriendly);
     //TEST(testRunAudienceFavorite)
     //TEST(testRunGetFriendlyStates)
-     */
+
 
     return 0;
 }
