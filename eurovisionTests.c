@@ -337,6 +337,7 @@ bool testRunGetFriendlyStates() {
 
   eurovisionDestroy(eurovision);
   return true;
+<<<<<<< HEAD
 }
 
 
@@ -3329,3 +3330,6 @@ bool test3_runFriendly(){
 
 
 
+=======
+}
+>>>>>>> master

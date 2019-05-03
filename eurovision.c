@@ -14,38 +14,66 @@
 #define JUDGES 1
 #define STATES 2
 #define EMPTY -1
-//TODO: declare ID as int
+#define DEFAULT_VALUE 0.0
+typedef double Score;
+typedef int ID;
+static const Score score[10] = {12,10,8,7,6,5,4,3,2,1};
 
 struct eurovision_t{
     Map states;
     Map judges;
 };
 
+/////////////////////////////////////////////////////////////////
+                  /* helper eurovision functions */
+////////////////////////////////////////////////////////////////
 
 /**
- * copyVote - Function to be used for copying an Vote as a key to the map
- * @param n - Vote to be copied
+ * copyScore - Function to be used for copying an Score as a key to the map
+ * @param n - Score to be copied
  * @return
- *   a copy of the given Vote
+ *   a copy of the given Score
  */
-static MapKeyElement copyVote(MapKeyElement n) {
+static MapKeyElement copyScore(MapKeyElement n) {
     if (!n) {
         return NULL;
     }
-    double *copy = malloc(sizeof(*copy));
+    Score *copy = malloc(sizeof(*copy));
     if (!copy) {
         return NULL;
     }
-    *copy = *(double *) n;
+    *copy = *(Score *) n;
     return (MapDataElement) copy;
 }
 
 /**
- * releaseVote - free the memory occupied by a vote instance
- * @param n - a vote instance to be released
+ * releaseScore - free the memory occupied by a Score instance
+ * @param n - a Score instance to be released
  */
-static void releaseVote(MapKeyElement n) {
+static void releaseScore(MapKeyElement n) {
     free(n);
+}
+
+/**
+ * compareScores - Function to be used by the map for comparing number of votes
+ * @param n1 - a number of votes to be compared
+ * @param n2 - a number of votes to be compared
+ * @return
+ *		A positive integer if the first element is greater;
+ * 		0 if they're equal;
+ *		A negative integer if the second element is greater.
+ */
+static int compareScores(MapKeyElement n1, MapKeyElement n2) {
+    Score res = (*(Score *) n1 - *(Score *) n2);
+    if (res==0){
+        return 0;
+    }
+    else if (res>0){
+        return 1;
+    }
+    else {
+        return -1;
+    }
 }
 
 /**
@@ -62,8 +90,29 @@ static MapKeyElement copyID(MapKeyElement n) {
     if (!copy) {
         return NULL;
     }
-    *copy = *(int *) n;
+    *copy = *(ID *) n;
     return (MapDataElement) copy;
+}
+
+/**
+ * releaseID - free the memory occupied by a ID instance
+ * @param n - a ID instance to be released
+ */
+static void releaseID(MapKeyElement n) {
+    free(n);
+}
+
+/**
+ * compareIDs - Function to be used by the map for comparing IDs
+ * @param n1 - a ID to be compared
+ * @param n2 - a ID to be compared
+ * @return
+ *		A positive integer if the first element is greater;
+ * 		0 if they're equal;
+ *		A negative integer if the second element is greater.
+ */
+static int compareIDs(MapKeyElement n1, MapKeyElement n2) {
+    return (*(ID *) n1 - *(ID *) n2);
 }
 
 /**
@@ -94,6 +143,7 @@ static void releaseString(ListElement n) {
     free(n);
 }
 
+//TODO@roy: add comment (and maybe move the enum to top of the page?)
 enum Size {FIRST_IS_GREATER=1,SAME_SIZE=0,SECOND_IS_GREATER=-1};
 static int sortStrings(ListElement str1,ListElement str2){
     if(!str1|| !str2){
@@ -108,48 +158,6 @@ static int sortStrings(ListElement str1,ListElement str2){
     }
     return SECOND_IS_GREATER;
 
-}
-/**
- * releaseID - free the memory occupied by a ID instance
- * @param n - a ID instance to be released
- */
-static void releaseID(MapKeyElement n) {
-    free(n);
-}
-
-/**
- * compareIDs - Function to be used by the map for comparing IDs
- * @param n1 - a ID to be compared
- * @param n2 - a ID to be compared
- * @return
- *		A positive integer if the first element is greater;
- * 		0 if they're equal;
- *		A negative integer if the second element is greater.
- */
-static int compareIDs(MapKeyElement n1, MapKeyElement n2) {
-    return (*(int *) n1 - *(int *) n2);
-}
-
-/**
- * compareVotes - Function to be used by the map for comparing number of votes
- * @param n1 - a number of votes to be compared
- * @param n2 - a number of votes to be compared
- * @return
- *		A positive integer if the first element is greater;
- * 		0 if they're equal;
- *		A negative integer if the second element is greater.
- */
-static int compareVotes(MapKeyElement n1, MapKeyElement n2) {
-    double res = (*(double *) n1 - *(double *) n2);
-    if (res==0){
-        return 0;
-    }
-    else if (res>0){
-        return 1;
-    }
-    else {
-        return -1;
-    }
 }
 
 /**
@@ -222,14 +230,14 @@ static bool checkName(const char* name){
  *  EUROVISION_INVALID_ID - in case of invalid state ID
  *  EUROVISION_SUCCESS - in case of success
  */
-EurovisionResult judgeRemoveByVote(Map judges, int stateId){
+EurovisionResult judgeRemoveByVote(Eurovision eurovision, ID stateId){
     if(stateId<0){
         return EUROVISION_INVALID_ID;
     }
     Set to_remove = setCreate(copyID,releaseID,compareIDs);
     Judge cur_judge;
-    MAP_FOREACH(int*, iterator, judges){
-        cur_judge = (Judge)mapGet(judges, iterator);
+    MAP_FOREACH(ID*, iterator, eurovision->judges){
+        cur_judge = (Judge)mapGet(eurovision->judges, iterator);
         for (int i = 0; i<10; i++){
             if (judgeGetVotes(cur_judge)[i]==stateId){
                 setAdd(to_remove,(SetElement)iterator);
@@ -237,9 +245,14 @@ EurovisionResult judgeRemoveByVote(Map judges, int stateId){
             }
         }
     }
-    SET_FOREACH(int*,iterator,to_remove){
-        mapRemove(judges,(MapKeyElement)iterator);
+    EurovisionResult res;
+    SET_FOREACH(ID*,iterator,to_remove){
+        res = eurovisionRemoveJudge(eurovision, *iterator);
+        if (res!=EUROVISION_SUCCESS){
+            return EUROVISION_JUDGE_NOT_EXIST;
+        }
     }
+    setDestroy(to_remove);
     return EUROVISION_SUCCESS;
 }
 
@@ -263,15 +276,284 @@ static EurovisionResult checkResults(int* results, Map states){
     }
     return EUROVISION_SUCCESS;
 }
+
+/**
+ * combineStrings: takes two states' names and combine them into one (ordered)
+ * string
+ * @param str1 - first string to combine
+ * @param str2 - second string to combine
+ * @return a new string of the format "FIRST_NAME - SECOND_NAME,"
+ */
+static char* combineStrings(char* str1, char* str2){
+    int len1=(int)strlen(str1);
+    int len2=(int)strlen(str2);
+    char* new_str=malloc(sizeof(*new_str)*(len1+len2+5));
+    if(strcmp(str1,str2)>=0){
+        strcpy(new_str,str2);
+        strcat(new_str," - ");
+        strcat(new_str,str1);
+    }
+    else{
+        strcpy(new_str,str1);
+        strcat(new_str," - ");
+        strcat(new_str,str2);
+
+    }
+    return new_str;
+}
+
+/**
+ * keyListToNameList - convert List contains stateIDs to List contains the
+ * corresponding state names
+ * @param keys_list - target list contains the StateIds
+ * @param states_map - Map object contain all the state names
+ * @return
+ *  NULL if error acquired, List contains the state names otherwise
+ */
+static List keyListToNameList(List IDs_list, Map states_map){
+    List name_list = listCreate(copyString,releaseString);
+    State cur_state;
+    char* cur_name;
+    LIST_FOREACH(ID*, iterator, IDs_list){
+        cur_state = mapGet(states_map, iterator);
+        if (!cur_state){
+            free(name_list);
+            free(cur_state);
+            return NULL;
+        }
+        cur_name = stateGetName(cur_state);
+        ListResult res = listInsertLast(name_list, cur_name);
+        if (res!=LIST_SUCCESS){
+            free(name_list);
+            free(cur_state);
+            return NULL;
+        }
+    }
+    return name_list;
+}
+
+
+/**
+ * VotesArrayToList - convert array of state IDs to a list of state IDs while
+ * keeping the same order
+ * @param votes_array - pointer to array of ints to convert
+ * @param n  - the length og the array
+ * @return
+ *  NULL if error acquired, List contains the stateID otherwise
+ */
+static List VotesArrayToList(int* votes_array, int n){
+    List votes = listCreate(copyID,releaseID);
+    if (!votes){
+        return NULL;
+    }
+    for (int i = 0; i<n; i++){
+        ListResult res = listInsertLast(votes, &votes_array[i]);
+        if (res != LIST_SUCCESS){
+            free(votes);
+            return NULL;
+        }
+    }
+    return votes;
+}
+
+/**
+ * mapToOrderedList - convert map of state IDs  and number of votes to a list
+ * of state IDs ordered by the number of votes the state got
+ * @param votes - map contains stateIDs as keys and number of votes os data
+ * @return
+ *  NULL if error acquired, List contains the stateID otherwise
+ */
+static List mapToOrderedList(Map votes){
+    int same_num_of_votes_counter=0;
+    Score last_max_value=-1;
+    int index=0;
+    int size_of_votes=mapGetSize(votes);
+    ID* ordered_winners=(int*)malloc(sizeof(int)*size_of_votes);
+    if(ordered_winners==NULL){
+        return NULL;
+    }
+    ID * max_key;
+    Score * current_max_value;
+    while(mapGetSize(votes)!=0){
+        max_key= mapMaxData(votes, compareScores);
+        current_max_value=(Score*)mapGet(votes,max_key);
+        ordered_winners[index]=*max_key;
+        if(*current_max_value==last_max_value){
+            same_num_of_votes_counter++;
+            for(int i=index;i+same_num_of_votes_counter>index;i--){
+                if(ordered_winners[i]<ordered_winners[i-1]){
+                    ID temp=ordered_winners[i-1];
+                    ordered_winners[i-1]=ordered_winners[i];
+                    ordered_winners[i]=temp;
+                }
+            }
+        }
+        else{
+            same_num_of_votes_counter=0;
+        }
+        last_max_value=*current_max_value;
+        MapResult result=mapRemove(votes,max_key);
+        if(result!=MAP_SUCCESS){
+            free(ordered_winners);
+            return NULL;
+        }
+        index++;
+    }
+    List results = VotesArrayToList(ordered_winners, size_of_votes);
+    free(ordered_winners);
+    if (!results){
+        free(results);
+        return NULL;
+    }
+    return results;
+}
+
+/**
+ * addScoreFromVote - take a list of top10 states and give add the required
+ * amount of score to their overall sum.
+ * the 1st state get 12 points, the 2nd 10, the 3rd 8, th 4th 7 etc.
+ * @param voters_score  - map contain the current sum of votes per state
+ * @param votes - array of 10 ints represent state IDs ordered by order of win
+ * @return
+ *  EUROVISION_OUT_OF_MEMORY if an error acquired during mapPut
+ *  EUROVISION_SUCCESS otherwise
+ */
+static EurovisionResult addScoreFromVote(Map voters_score, int* votes){
+    Score score_placeholder;
+    for (int i=0; i<10;i++){
+        if (votes[i]!=EMPTY) {
+            score_placeholder = *(Score *)mapGet(voters_score, &votes[i]);
+            score_placeholder = score_placeholder + score[i];
+            MapResult res = mapPut(voters_score, &votes[i], &score_placeholder);
+            if (res != MAP_SUCCESS) {
+                return EUROVISION_OUT_OF_MEMORY;
+            }
+        }
+    }
+    return EUROVISION_SUCCESS;
+}
+
+/**
+ * ScoreCalculate - create a map that contains as keys the states IDs and
+ * as data the average score given by the given voters - states or judges
+ * @param eurovision - an eurovision instance target
+ * @param voters_flag - target score type, either JUDGES or STATES
+ * @return
+ *  NULL if a error acquired (memory allocation, illegal argument etc.)
+ *  map contains the average score per state otherwise
+ */
+static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
+    if ((voters_flag!=JUDGES)&&(voters_flag!=STATES)){
+        return NULL;
+    }
+    Map* voters;
+    if (voters_flag==JUDGES){
+        voters = &eurovision->judges;
+    }
+    else{
+        voters = &eurovision->states;
+    }
+    Score score_placeholder, default_value = DEFAULT_VALUE;
+    double number_of_voters = (double)mapGetSize(*voters);
+    Map voters_score = mapCopyOnlyKeys(eurovision->states, copyScore,
+                                       releaseScore, &default_value);
+    if (!voters_score){
+        free(voters_score);
+        return NULL;
+    }
+    MAP_FOREACH(MapKeyElement, iterator, *voters){
+        int* votes;
+        if (voters_flag==JUDGES){
+            Judge cur_judge;
+            cur_judge = mapGet(eurovision->judges, iterator);
+            votes = judgeGetVotes(cur_judge);
+        }
+        else{
+            State cur_state;
+            cur_state = mapGet(eurovision->states, iterator);
+            votes = stateGetTopTen(cur_state);
+        }
+        EurovisionResult res = addScoreFromVote(voters_score, votes);
+        if (res!=EUROVISION_SUCCESS){
+            mapDestroy(voters_score);
+            return NULL;
+        }
+        if(voters_flag==STATES){
+            free(votes);
+        }
+    }
+    MAP_FOREACH(MapKeyElement, iterator, eurovision->states){
+        score_placeholder = *(Score*)mapGet(voters_score,iterator);
+        score_placeholder = score_placeholder/number_of_voters;
+        MapResult res = mapPut(voters_score, iterator, &score_placeholder);
+        if (res!=MAP_SUCCESS){
+            mapDestroy(voters_score);
+            return NULL;
+        }
+    }
+    return voters_score;
+}
+
+//TODO@roy: add comment
+static MapResult updateNewStateVoteMap(Map states,State new_state){
+    MAP_FOREACH(ID*,iterator,states){
+        MapResult res=addOrRemoveNewStateToVotes(new_state,iterator,ADD);
+        if(res!=MAP_SUCCESS){
+            return res;
+        }
+    }
+    ID new_state_ID=stateGetID(new_state);
+    MapResult res=SetIterator(states,&new_state_ID);
+    if(res!=MAP_SUCCESS){
+        return MAP_ITEM_DOES_NOT_EXIST;
+    }
+    return MAP_SUCCESS;
+}
+
+//TODO@roy: add comment
+static EurovisionResult updateStatesVoteMaps(Map states,ID stateId,
+                                             int action){
+    ID cur_ID=stateId;
+    int num_of_states=mapGetSize(states);
+    MAP_FOREACH(ID*,IDiterator,states){
+        State current_state=mapGet(states,IDiterator);
+        if(current_state==NULL){
+            return EUROVISION_STATE_NOT_EXIST;
+        }
+        if(*IDiterator==stateId && num_of_states>1 && action==ADD){
+            MapResult update_result = updateNewStateVoteMap(states,
+                    current_state);
+            if (update_result != MAP_SUCCESS) {
+                return EUROVISION_OUT_OF_MEMORY;
+            }
+        }
+        else {
+            if (addOrRemoveNewStateToVotes(current_state, &cur_ID, action)
+                != MAP_SUCCESS) {
+                if (action == ADD) {
+                    return EUROVISION_OUT_OF_MEMORY;
+                }
+                if (action == REMOVE) {
+                    return EUROVISION_STATE_NOT_EXIST;
+                }
+            }
+        }
+    }
+    return EUROVISION_SUCCESS;
+}
+
 /////////////////////////////////////////////////////////////////
+                  /* main eurovision functions */
 ////////////////////////////////////////////////////////////////
 
 Eurovision eurovisionCreate(){
-    Map judges_map=mapCreate(copyJudge,copyID,releaseJudge,releaseID,compareIDs);
+    Map judges_map=
+            mapCreate(copyJudge,copyID,releaseJudge,releaseID,compareIDs);
     if(judges_map==NULL){
         return NULL;
     }
-    Map states_map=mapCreate(copyState,copyID,releaseState,releaseID,compareIDs);
+    Map states_map=
+            mapCreate(copyState,copyID,releaseState,releaseID,compareIDs);
     if(states_map==NULL){
         return NULL;
     }
@@ -290,55 +572,7 @@ void eurovisionDestroy(Eurovision eurovision){
     free(eurovision);
 }
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-static MapResult updateNewStateVoteMap(Map states,State new_state){
-    MAP_FOREACH(int *,iterator,states){
-        MapResult res=addOrRemoveNewStateToVotes(new_state,iterator,ADD);
-        if(res!=MAP_SUCCESS){
-            return res;
-        }
-    }
-    int new_state_ID=stateGetID(new_state);
-    MapResult res=SetIterator(states,&new_state_ID);
-    if(res!=MAP_SUCCESS){
-        return MAP_ITEM_DOES_NOT_EXIST;
-    }
-    return MAP_SUCCESS;
-}
-static EurovisionResult updateStatesVoteMaps(Map states,int stateId,
-        int action){
-    int ID=stateId;
-    int num_of_states=mapGetSize(states);
-    MAP_FOREACH(int *,IDiterator,states){
-        State current_state=mapGet(states,IDiterator);
-        if(current_state==NULL){
-            return EUROVISION_STATE_NOT_EXIST;
-        }
-        if(*IDiterator==stateId && num_of_states>1 && action==ADD){
-                MapResult update_result = updateNewStateVoteMap(states, current_state);
-                if (update_result != MAP_SUCCESS) {
-                    return EUROVISION_OUT_OF_MEMORY;
-                }
-            }
-        else {
-            if (addOrRemoveNewStateToVotes(current_state, &ID, action)
-            != MAP_SUCCESS) {
-                if (action == ADD) {
-                    return EUROVISION_OUT_OF_MEMORY;
-                }
-                if (action == REMOVE) {
-                    return EUROVISION_STATE_NOT_EXIST;
-                }
-            }
-        }
-    }
-
-    return EUROVISION_SUCCESS;
-
-}
-
-EurovisionResult eurovisionAddState(Eurovision eurovision, int stateId,
+EurovisionResult eurovisionAddState(Eurovision eurovision, ID stateId,
                                     const char *stateName,
                                     const char *songName){
     if(!eurovision||!stateName||!songName){
@@ -374,8 +608,7 @@ EurovisionResult eurovisionAddState(Eurovision eurovision, int stateId,
 
 }
 
-EurovisionResult eurovisionRemoveState(Eurovision eurovision, int stateId){
-    //TODO: function to remove every judge who voted to the state
+EurovisionResult eurovisionRemoveState(Eurovision eurovision, ID stateId){
     if(stateId<0){
         return EUROVISION_INVALID_ID;
     }
@@ -386,9 +619,9 @@ EurovisionResult eurovisionRemoveState(Eurovision eurovision, int stateId){
     if(result==MAP_ITEM_DOES_NOT_EXIST){
         return EUROVISION_STATE_NOT_EXIST;
     }
-    EurovisionResult update_result=updateStatesVoteMaps(eurovision->states, \
+    EurovisionResult update_result=updateStatesVoteMaps(eurovision->states,
             stateId,REMOVE);
-    EurovisionResult judge_result=judgeRemoveByVote(eurovision->judges,stateId);
+    EurovisionResult judge_result=judgeRemoveByVote(eurovision,stateId);
     if(judge_result!=EUROVISION_SUCCESS){
         return judge_result;
     }
@@ -396,8 +629,7 @@ EurovisionResult eurovisionRemoveState(Eurovision eurovision, int stateId){
 
 }
 
-
-EurovisionResult eurovisionAddJudge(Eurovision eurovision, int judgeId,
+EurovisionResult eurovisionAddJudge(Eurovision eurovision, ID judgeId,
                                     const char *judgeName,
                                     int *judgeResults){
     if(!eurovision||!judgeName||!judgeResults){
@@ -428,7 +660,7 @@ EurovisionResult eurovisionAddJudge(Eurovision eurovision, int judgeId,
     return EUROVISION_SUCCESS;
 }
 
-EurovisionResult eurovisionRemoveJudge(Eurovision eurovision, int judgeId){
+EurovisionResult eurovisionRemoveJudge(Eurovision eurovision, ID judgeId){
     if(!eurovision){
         return EUROVISION_NULL_ARGUMENT;
     }
@@ -447,8 +679,8 @@ EurovisionResult eurovisionRemoveJudge(Eurovision eurovision, int judgeId){
     }
 }
 
-EurovisionResult eurovisionAddVote(Eurovision eurovision, int stateGiver,
-                                   int stateTaker){
+EurovisionResult eurovisionAddVote(Eurovision eurovision, ID stateGiver,
+                                   ID stateTaker){
     if(!eurovision){
         return EUROVISION_NULL_ARGUMENT;
     }
@@ -470,14 +702,14 @@ EurovisionResult eurovisionAddVote(Eurovision eurovision, int stateGiver,
     int curr_vote = *(int*)mapGet(state_voting_list,&stateTaker);
     curr_vote++;
     MapResult result = mapPut(state_voting_list,&stateTaker, &curr_vote);
-    if (result==MAP_SUCCESS){ ////// what about other results?
+    if (result==MAP_SUCCESS){
         return EUROVISION_SUCCESS;
     }
     return EUROVISION_OUT_OF_MEMORY;
 }
 
-EurovisionResult eurovisionRemoveVote(Eurovision eurovision, int stateGiver,
-                                      int stateTaker){
+EurovisionResult eurovisionRemoveVote(Eurovision eurovision, ID stateGiver,
+                                      ID stateTaker){
     if(!eurovision){
         return EUROVISION_NULL_ARGUMENT;
     }
@@ -496,190 +728,15 @@ EurovisionResult eurovisionRemoveVote(Eurovision eurovision, int stateGiver,
         return EUROVISION_STATE_NOT_EXIST;
     }
     Map state_voting_list=getVotesList(giver_state);
-    //int curr_vote = *(int*)mapGet(giver_state->votes,&stateTaker);
     int curr_vote = *(int*)mapGet(state_voting_list,&stateTaker);
     if (curr_vote>0){
         curr_vote--;
     }
-    //MapResult result = mapPut(giver_state->votes,&stateTaker, &curr_vote);
     MapResult result = mapPut(state_voting_list,&stateTaker, &curr_vote);
-    if (result==MAP_SUCCESS){ ////// what about other results?
+    if (result==MAP_SUCCESS){
         return EUROVISION_SUCCESS;
     }
     return EUROVISION_OUT_OF_MEMORY;
-}
-
-/**
- * ScoreCalculate - create a map that contains as keys the states IDs and
- * as data the average score given by the given voters - states or judges
- * @param eurovision - an eurovision instance target
- * @param voters_flag - target score type, either JUDGES or STATES
- * @return
- *  NULL if a error acquired (memory allocation, illegal argument etc.)
- *  map contains the average score per state otherwise
- */
-static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
-    if ((voters_flag!=JUDGES)&&(voters_flag!=STATES)){
-        return NULL;
-    }
-    Map* voters;
-    if (voters_flag==JUDGES){
-        voters = &eurovision->judges;
-    }
-    else{
-        voters = &eurovision->states;
-    }
-    double score[10] = {12,10,8,7,6,5,4,3,2,1};
-    double default_value = 0;
-    Map voters_score = mapCopyOnlyKeys(eurovision->states, copyVote,
-                                       releaseVote, &default_value);
-    if (!voters_score){
-        free(voters_score);
-        return NULL;
-    }
-    double score_placeholder;
-    double number_of_voters = (double)mapGetSize(*voters);
-    MAP_FOREACH(MapKeyElement, iterator, *voters){
-        int* votes;
-        if (voters_flag==JUDGES){
-            Judge cur_judge;
-            cur_judge = mapGet(eurovision->judges, iterator);
-            votes = judgeGetVotes(cur_judge);
-        }
-        else{
-            State cur_state;
-            cur_state = mapGet(eurovision->states, iterator);
-            votes = stateGetTopTen(cur_state);
-        }
-        for (int i=0; i<10;i++){
-            if (votes[i]!=EMPTY) {
-                score_placeholder = *(double *)mapGet(voters_score, &votes[i]);
-                score_placeholder = score_placeholder + score[i];
-                MapResult res = mapPut(voters_score, &votes[i], &score_placeholder);
-                if (res != MAP_SUCCESS) {
-                    mapDestroy(voters_score);
-                    return NULL;
-                }
-            }
-        }
-        if(voters_flag==STATES){
-            free(votes);
-        }
-    }
-    MAP_FOREACH(MapKeyElement, iterator, eurovision->states){
-        score_placeholder = *(double*)mapGet(voters_score,iterator);
-        score_placeholder = score_placeholder/number_of_voters;
-        MapResult res = mapPut(voters_score, iterator, &score_placeholder);
-        if (res!=MAP_SUCCESS){
-            mapDestroy(voters_score);
-            return NULL;
-        }
-    }
-    return voters_score;
-}
-
-/**
- * VotesArrayToList - convert array of state IDs to a list of state IDs while
- * keeping the same order
- * @param votes_array - pointer to array of ints to convert
- * @param n  - the length og the array
- * @return
- *  NULL if error acquired, List contains the stateID otherwise
- */
-static List VotesArrayToList(int* votes_array, int n){
-    List votes = listCreate(copyID,releaseID);
-    if (!votes){
-        return NULL;
-    }
-    for (int i = 0; i<n; i++){
-        ListResult res = listInsertLast(votes, &votes_array[i]);
-        if (res != LIST_SUCCESS){
-            free(votes);
-            return NULL;
-        }
-    }
-    return votes;
-}
-
-/**
- * mapToOrderedList - convert map of state IDs  and number of votes to a list
- * of state IDs ordered by the number of votes the state got
- * @param votes - map contains stateIDs as keys and number of votes os data
- * @return
- *  NULL if error acquired, List contains the stateID otherwise
- */
-static List mapToOrderedList(Map votes){
-    int same_num_of_votes_counter=0;
-    double last_max_value=-1;
-    int index=0;
-    int size_of_votes=mapGetSize(votes);
-    int* ordered_winners=(int*)malloc(sizeof(int)*size_of_votes);
-    if(ordered_winners==NULL){
-        return NULL;
-    }
-    int * max_key;
-    double * current_max_value;
-    while(mapGetSize(votes)!=0){
-        max_key=mapMaxData(votes,compareVotes);
-        current_max_value=(double*)mapGet(votes,max_key);
-        ordered_winners[index]=*max_key;
-        if(*current_max_value==last_max_value){
-            same_num_of_votes_counter++;
-            for(int i=index;i+same_num_of_votes_counter>index;i--){
-                if(ordered_winners[i]<ordered_winners[i-1]){
-                    int temp=ordered_winners[i-1];
-                    ordered_winners[i-1]=ordered_winners[i];
-                    ordered_winners[i]=temp;
-                }
-            }
-        }
-        else{
-            same_num_of_votes_counter=0;
-        }
-        last_max_value=*current_max_value;
-        MapResult result=mapRemove(votes,max_key);
-        if(result!=MAP_SUCCESS){
-            free(ordered_winners);
-            return NULL;
-        }
-        index++;
-    }
-    List results = VotesArrayToList(ordered_winners, size_of_votes);
-    free(ordered_winners);
-    if (!results){
-        free(results);
-        return NULL;
-    }
-    return results;
-}
-
-/**
- * convert List contains stateIDs to List contains the corresponding state names
- * @param keys_list - target list contains the StateIds
- * @param states_map - Map object contain all the state names
- * @return
- *  NULL if error acquired, List contains the state names otherwise
- */
-static List keyListToNameList(List keys_list, Map states_map){
-    List name_list = listCreate(copyString,releaseString);
-    State cur_state;
-    char* cur_name;
-    LIST_FOREACH(int*, iterator, keys_list){
-        cur_state = mapGet(states_map, iterator);
-        if (!cur_state){
-            free(name_list);
-            free(cur_state);
-            return NULL;
-        }
-        cur_name = stateGetName(cur_state);
-        ListResult res = listInsertLast(name_list, cur_name);
-        if (res!=LIST_SUCCESS){
-            free(name_list);
-            free(cur_state);
-            return NULL;
-        }
-    }
-    return name_list;
 }
 
 List eurovisionRunAudienceFavorite(Eurovision eurovision){
@@ -689,39 +746,17 @@ List eurovisionRunAudienceFavorite(Eurovision eurovision){
     }
     return winners_by_audience;
 }
-/**
- * takes two states' names and combine them into one (ordered) string
- * @param str1
- * @param str2
- * @return a new string of the format "FIRST_NAME - SECOND_NAME,"
- */
-static char* combineStrings(char* str1, char* str2){
-    int len1=(int)strlen(str1);
-    int len2=(int)strlen(str2);
-    char* new_str=malloc(sizeof(*new_str)*(len1+len2+5));
-    if(strcmp(str1,str2)>=0){
-        strcpy(new_str,str2);
-        strcat(new_str," - ");
-        strcat(new_str,str1);
-    }
-    else{
-        strcpy(new_str,str1);
-        strcat(new_str," - ");
-        strcat(new_str,str2);
 
-    }
-
-    return new_str;
-}
+//TODO@roy: the function is 60 lines, split 10+ of them to different function
 List eurovisionRunGetFriendlyStates(Eurovision eurovision){
     Map euro_states=eurovision->states;
     List friendly_states=listCreate(copyString,releaseString);
-    int* second_top_ten_voted=NULL;
+    ID* second_top_ten_voted=NULL;
     char* state_name=NULL;
     char* second_state_name=NULL;
     char* new_str=NULL;
-    MAP_FOREACH(int *,iterator,euro_states){
-        int* top_ten_voted;
+    MAP_FOREACH(ID*,iterator,euro_states){
+        ID* top_ten_voted;
         State current_state=mapGet(euro_states,iterator);
         if(!current_state){
             mapDestroy(euro_states);
@@ -773,6 +808,7 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
     }
     return friendly_states;
 }
+
 List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
     if(!eurovision){
         return NULL;
@@ -782,19 +818,19 @@ List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
     }
     Map judges_score = ScoreCalculate(eurovision, JUDGES);
     Map states_score = ScoreCalculate(eurovision, STATES);
-    double default_value = 0.;
-    double judges_score_placeholder, states_score_placeholder, score;
-    Map overall_score = mapCopyOnlyKeys(judges_score, copyVote,
-                                        releaseVote, &default_value);
+    Score default_value = DEFAULT_VALUE;
+    Score judges_score_placeholder, states_score_placeholder, score;
+    Map overall_score = mapCopyOnlyKeys(judges_score, copyScore,
+                                        releaseScore, &default_value);
     if (!overall_score){
         free(overall_score);
         return NULL;
     }
     MAP_FOREACH(MapKeyElement, iterator, states_score){
-        judges_score_placeholder = *(double*)mapGet(judges_score, iterator);
-        states_score_placeholder = *(double*)mapGet(states_score, iterator);
-        score = ((double)audiencePercent/100)*states_score_placeholder +
-                (1-(double)audiencePercent/100)*judges_score_placeholder;
+        judges_score_placeholder = *(Score*)mapGet(judges_score, iterator);
+        states_score_placeholder = *(Score*)mapGet(states_score, iterator);
+        score = ((Score)audiencePercent/100)*states_score_placeholder +
+                (1-((Score)audiencePercent/100))*judges_score_placeholder;
         MapResult res = mapPut(overall_score,iterator,&score);
         if (res!=MAP_SUCCESS){
             mapDestroy(judges_score);
@@ -803,15 +839,6 @@ List eurovisionRunContest(Eurovision eurovision, int audiencePercent){
             return NULL;
         }
     }
-/*
-    int temp1;
-    double temp2;
-    MAP_FOREACH(MapKeyElement, iterator, judges_score){
-        temp1 = *(int*)iterator;
-        temp2 = *(double*)mapGet(judges_score,iterator);
-        printf("country %d have %lf votes\n", temp1, temp2);
-    }
-*/
     mapDestroy(judges_score);
     mapDestroy(states_score);
     List final_results_keys = mapToOrderedList(overall_score);

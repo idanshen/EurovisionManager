@@ -3,12 +3,23 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include "mtm_map/map.h" ///check this!!
+#include "mtm_map/map.h"
 #define ADD 1
 #define REMOVE -1
 #define EMPTY -1
 
-//functions needed for states vote map
+/** Type for defining the state */
+struct State_t{
+    char* name;
+    char* song;
+    int ID;
+    Map votes;
+};
+
+/////////////////////////////////////////////////////////////////
+                 /* helper state functions */
+////////////////////////////////////////////////////////////////
+//TODO@roy: add comment
 static MapKeyElement copyVotesOrID(MapKeyElement n) {
     if (!n) {
         return NULL;
@@ -21,22 +32,19 @@ static MapKeyElement copyVotesOrID(MapKeyElement n) {
     return copy;
 }
 
+//TODO@roy: add comment
 static void releaseVotesOrID(MapKeyElement n) {
     free(n);
 }
 
+//TODO@roy: add comment
 static int compareIDs(MapKeyElement n1, MapKeyElement n2) {
     return (*(int *) n1 - *(int *) n2);
 }
 
-
-/** Type for defining the state */
-struct State_t{
-    char* name;
-    char* song;
-    int ID;
-    Map votes;
-};
+/////////////////////////////////////////////////////////////////
+              /* main state functions */
+////////////////////////////////////////////////////////////////
 
 State createState(int stateId,const char* stateName,const char* songName){
     State new_state=malloc(sizeof(*new_state));
@@ -119,16 +127,6 @@ Map getVotesList(State state){
     }
     Map state_list = state->votes;
     return state_list;
-}
-MapResult changeVotesList(State state,Map new_votes_list){
-    if(!new_votes_list || !state){
-        return MAP_NULL_ARGUMENT;
-    }
-    Map temp=state->votes;
-    state->votes=new_votes_list;
-    mapDestroy(temp);
-    return MAP_SUCCESS;
-
 }
 
 int* stateGetTopTen(State state){

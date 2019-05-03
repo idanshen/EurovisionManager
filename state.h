@@ -1,8 +1,7 @@
-#include "mtm_map/map.h" //////////TODO: check if this is ok
-
 #ifndef EUROVISION_C_STATE_H
 #define EUROVISION_C_STATE_H
 
+#include "mtm_map/map.h"
 
 /**
 * a implementation of State ADT
@@ -11,6 +10,7 @@
 * The following functions are available:
 *   stateCreate - Allocates a new state.
 */
+// TODO@roy: finnish writing the above comment
 
 /** Type for defining the state */
 typedef struct State_t *State;
@@ -56,7 +56,6 @@ State stateCopy(State state);
  */
 MapResult addOrRemoveNewStateToVotes(State state,int * ID,int action);
 
-Map getVotesList(State state);
 
 /**
  * stateGetTopTen: create ordered array with the top 10 states based on the
@@ -77,8 +76,20 @@ int* stateGetTopTen(State state);
  */
 char* stateGetName(State state);
 
-int stateGetID(State state);
+/**
+ * helper function to get the inner votes map of a state
+ * @param state - target state
+ * @return
+ *  state's votes map
+ */
+Map getVotesList(State state);
 
-MapResult changeVotesList(State state,Map new_votes_list);
+/**
+ * helper function to get the state ID
+ * @param state  - target state
+ * @return
+ *  state's ID
+ */
+int stateGetID(State state);
 
 #endif //EUROVISION_C_STATE_H

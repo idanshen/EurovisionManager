@@ -23,6 +23,7 @@ int main(int argc, char *argv[]) {
     TEST(testRunContest)
     TEST(testRunAudienceFavorite)
     TEST(testRunGetFriendlyStates)
+<<<<<<< HEAD
 
 
     //TEST(test1_runContest);
@@ -40,6 +41,8 @@ int main(int argc, char *argv[]) {
     //TEST(testRunGetFriendlyStates)
 
 
+=======
+>>>>>>> master
     return 0;
 }
 

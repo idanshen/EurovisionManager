@@ -1,7 +1,6 @@
 #ifndef EUROVISION_C_JUDGE_H
 #define EUROVISION_C_JUDGE_H
 
-
 /**
 * a implementation of Judge ADT
 *
@@ -9,6 +8,8 @@
 * The following functions are available:
 *   judgeCreate - Allocates a new judge.
 */
+// TODO@idan: finnish writing the above comment
+
 
 /** Type for defining the judge */
 typedef struct Judge_t *Judge;

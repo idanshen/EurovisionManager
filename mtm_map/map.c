@@ -4,14 +4,15 @@
 #include <stdio.h>
 
 #define ERROR -1
-/** TODO */
+
+/** Type for defining a node in linked list */
 typedef struct node_t {
     void *key;
     void *data;
     struct node_t *next;
 } *Node;
 
-/** TODO */
+/** Type for defining the map */
 struct Map_t {
     Node base;
     Node node_iterator;
@@ -22,13 +23,32 @@ struct Map_t {
     compareMapKeyElements compareKey;
 };
 
+/////////////////////////////////////////////////////////////////
+               /* helper map functions */
+////////////////////////////////////////////////////////////////
+
+/**
+ * helper function to release the memory allocated by node
+ * @param map - map to take freeKey and freeData from
+ * @param node - target node
+ */
+static void freeNode(Map map, Node node){
+    map->freeKey(node->key);
+    map->freeData(node->data);
+    free(node);
+}
+
+/////////////////////////////////////////////////////////////////
+                /* main map functions */
+////////////////////////////////////////////////////////////////
 
 Map mapCreate(copyMapDataElements copyDataElement,
               copyMapKeyElements copyKeyElement,
               freeMapDataElements freeDataElement,
               freeMapKeyElements freeKeyElement,
               compareMapKeyElements compareKeyElements) {
-    if ((!copyDataElement) || (!copyKeyElement) || (!freeDataElement) || (!compareKeyElements)) {
+    if ((!copyDataElement) || (!copyKeyElement)
+    || (!freeDataElement) || (!compareKeyElements)) {
         return NULL;
     }
     Map map = malloc(sizeof(*map));
@@ -147,12 +167,9 @@ MapResult mapPut(Map map, MapKeyElement keyElement, MapDataElement dataElement){
         if (map->compareKey(map->base->key, keyElement)==0){
             free(map->base->data);
             map->base->data = map->copyData(dataElement);
-            free(new->key);
-            free(new->data);
-            free(new);
+            freeNode(map, new);
             return MAP_SUCCESS;
-        }
-        else if (map->compareKey(map->base->key, keyElement)>0){
+        } else if (map->compareKey(map->base->key, keyElement)>0){
             Node temp = map->base;
             map->base = new;
             new->next = temp;
@@ -162,16 +179,14 @@ MapResult mapPut(Map map, MapKeyElement keyElement, MapDataElement dataElement){
             if (!map->node_iterator->next) {
                 map->node_iterator->next = new;
                 return MAP_SUCCESS;
-            }
-            else if (map->compareKey(map->node_iterator->next->key, keyElement)==0){
+            } else if
+            (map->compareKey(map->node_iterator->next->key, keyElement)==0){
                 free(map->node_iterator->next->data);
                 map->node_iterator->next->data = map->copyData(dataElement);
-                free(new->key);
-                free(new->data);
-                free(new);
+                freeNode(map, new);
                 return MAP_SUCCESS;
-            }
-            else if (map->compareKey(map->node_iterator->next->key, keyElement)>0){
+            } else if
+            (map->compareKey(map->node_iterator->next->key, keyElement)>0){
                 new->next = map->node_iterator->next;
                 map->node_iterator->next = new;
                 return MAP_SUCCESS;
@@ -188,13 +203,10 @@ MapDataElement mapGet(Map map, MapKeyElement keyElement){
     Node iter = map->base;
     while(iter->next){
         if (map->compareKey(iter->key,keyElement) == 0) {
-
-            //free(iter);
             return iter->data;
         }
         iter = iter->next;
     }
-    //check last Node
     if (map->compareKey(iter->key,keyElement) == 0) {
         return iter->data;
     }
@@ -211,15 +223,9 @@ MapResult mapRemove(Map map, MapKeyElement keyElement){
     if (map->compareKey(map->base->key, keyElement)==0){
         map->freeKey(map->base->key);
         map->freeData(map->base->data);
-        //Node temp_pointer = map->base->next;
-        Node temp_pointer = map->base;
-        //free(map->base); //TODO: idan-think about it
-        map->base = map->base->next;
-        map->node_iterator=map->base;
-        //map->freeKey(temp_pointer->key);
-        //map->freeData(temp_pointer->data);
-        free(temp_pointer);
-        //map->base=temp_pointer;
+        Node temp_pointer = map->base->next;
+        free(map->base);
+        map->base = temp_pointer;
         return MAP_SUCCESS;
     }
     MAP_FOREACH(MapKeyElement, iterator, map){
@@ -227,14 +233,9 @@ MapResult mapRemove(Map map, MapKeyElement keyElement){
             if (map->compareKey(map->node_iterator->next->key, keyElement)==0){
                 map->freeKey(map->node_iterator->next->key);
                 map->freeData(map->node_iterator->next->data);
-                Node temp_pointer=map->node_iterator->next;
-                //Node temp_pointer = map->node_iterator->next->next;
-                map->node_iterator->next=map->node_iterator->next->next;
-                //map->freeKey(temp_pointer->key);
-                //map->freeData(temp_pointer->data);
-                free(temp_pointer);
-                //free(map->node_iterator->next);
-                //map->node_iterator->next = temp_pointer;
+                Node temp_pointer = map->node_iterator->next->next;
+                free(map->node_iterator->next);
+                map->node_iterator->next = temp_pointer;
                 return MAP_SUCCESS;
             }
         }
