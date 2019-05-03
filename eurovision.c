@@ -4,6 +4,7 @@
 #include "state.h"
 #include "list.h"
 #include "set.h"
+#include <math.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -378,7 +379,8 @@ static List mapToOrderedList(Map votes){
         max_key= mapMaxData(votes, compareScores);
         current_max_value=(Score*)mapGet(votes,max_key);
         ordered_winners[index]=*max_key;
-        if(*current_max_value==last_max_value){
+        if(fabs(*current_max_value-last_max_value)<0.00001){
+        //if(*current_max_value==last_max_value){ TODO: check if fabs necessary
             same_num_of_votes_counter++;
             for(int i=index;i+same_num_of_votes_counter>index;i--){
                 if(ordered_winners[i]<ordered_winners[i-1]){
@@ -455,11 +457,17 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
     }
     Score score_placeholder, default_value = DEFAULT_VALUE;
     double number_of_voters = (double)mapGetSize(*voters);
+    if(voters_flag==STATES){
+        number_of_voters=number_of_voters-1;
+    }
     Map voters_score = mapCopyOnlyKeys(eurovision->states, copyScore,
                                        releaseScore, &default_value);
     if (!voters_score){
         free(voters_score);
         return NULL;
+    }
+    if (number_of_voters==0){
+        return voters_score;
     }
     MAP_FOREACH(MapKeyElement, iterator, *voters){
         int* votes;
