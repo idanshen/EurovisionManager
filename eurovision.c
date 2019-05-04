@@ -4,7 +4,6 @@
 #include "state.h"
 #include "list.h"
 #include "set.h"
-#include "map_utils.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>

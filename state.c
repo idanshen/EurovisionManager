@@ -1,5 +1,4 @@
 #include "state.h"
-#include "map_utils.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
