@@ -1,16 +1,23 @@
 #ifndef EUROVISION_C_STATE_H
 #define EUROVISION_C_STATE_H
 
-#include "mtm_map/map.h"
+#include "euroMap.h"
 
 /**
 * a implementation of State ADT
 *
 * Implements a state type for the Eurovision managing system.
 * The following functions are available:
-*   stateCreate - Allocates a new state.
+* stateCreate - Allocates a new state.
+* deleteState - Deallocates an existing state.
+* stateCopy - Creates a copy of target state.
+* addOrRemoveNewStateToVotes - add new state to each state's votes list.
+* stateGetTopTen - create ordered array with the top 10 states based on the
+   votes of the target state.
+* stateGetName - Gets the name of the target state.
+* getVotesList - helper function to get the inner votes map of a state.
+* stateGetID - helper function to get the state ID.
 */
-// TODO@roy: finnish writing the above comment
 
 /** Type for defining the state */
 typedef struct State_t *State;
@@ -18,30 +25,30 @@ typedef struct State_t *State;
 
 /**
  * stateCreate: Allocates a new state.
- * @param judgeId - unique positive number to identify the judge by.
- * @param judgeName - the name of the judge, must be only lowercase letters and
+ * @param stateId - unique positive number to identify the state by.
+ * @param stateName - the name of the state, must be only lowercase letters and
                       spaces.
- * @param judgeResults - array of 10 integers which contains the stateIds of
-                         the specific judge votes.
+ * @param stateResults - array of 10 integers which contains the stateIds of
+                         the specific state votes.
  * @return
  *  NULL - if one of the parameters is NULL or allocations failed.
-* 	A new judge in case of success.
+* 	A new state in case of success.
  */
 State createState(int stateId,const char* stateName,const char* songName);
 
 /**
- * judgeDelete - Deallocates an existing judge.
- * @param judge - a judge to release its variable's memory
+ * deleteState - Deallocates an existing state.
+ * @param state - a state to release its variable's memory
  */
 void deleteState(State state);
 
 /**
-* mapCopy: Creates a copy of target judge.
+* stateCopy: Creates a copy of target state.
 *
-* @param judge - Target judge.
+* @param state - Target state.
 * @return
 * 	NULL if a NULL was sent or a memory allocation failed.
-* 	A Judge containing the same elements as judge otherwise.
+* 	A State containing the same elements as state otherwise.
 */
 State stateCopy(State state);
 

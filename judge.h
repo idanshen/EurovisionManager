@@ -7,8 +7,11 @@
 * Implements a judge type fot the Eurovision managing system.
 * The following functions are available:
 *   judgeCreate - Allocates a new judge.
+*   judgeDelete - Deallocates an existing judge.
+*   judgeCopy - Creates a copy of target judge.
+*   judgeGetVOtes - helper function to get the votes of a judge.
 */
-// TODO@idan: finnish writing the above comment
+
 
 
 /** Type for defining the judge */
@@ -35,7 +38,7 @@ Judge judgeCreate(int judgeId, const char *judgeName, int *judgeResults);
 void judgeDelete(Judge judge);
 
 /**
-* mapCopy: Creates a copy of target judge.
+* judgeCopy: Creates a copy of target judge.
 *
 * @param judge - Target judge.
 * @return

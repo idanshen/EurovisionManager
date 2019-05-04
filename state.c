@@ -1,9 +1,10 @@
 #include "state.h"
+#include "map_utils.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include "mtm_map/map.h"
+#include "euroMap.h"
 #define ADD 1
 #define REMOVE -1
 #define EMPTY -1
@@ -19,7 +20,13 @@ struct State_t{
 /////////////////////////////////////////////////////////////////
                  /* helper state functions */
 ////////////////////////////////////////////////////////////////
-//TODO@roy: add comment
+/**
+ * copyVotesOrID - makes a copy of a key (ID) or data (votes)
+ * element which is an int.
+ * @param n - a key or data element
+ * @return
+ * a copy of the element which was given, NULL otherwise
+ */
 static MapKeyElement copyVotesOrID(MapKeyElement n) {
     if (!n) {
         return NULL;
@@ -32,12 +39,21 @@ static MapKeyElement copyVotesOrID(MapKeyElement n) {
     return copy;
 }
 
-//TODO@roy: add comment
+/**
+ * releaseVotesOrID - release an allocated votes or ID element
+ * @param n - a key or data element
+ */
 static void releaseVotesOrID(MapKeyElement n) {
     free(n);
 }
 
-//TODO@roy: add comment
+/**
+ * compareIDs - compare two IDs.
+ * @param n1 - first ID element
+ * @param n2 - second ID element
+ * @return 0 if the IDs are equal, positive number if n1 is larger than
+ * n2 and a negative ID if n1 is smaller than n2.
+ */
 static int compareIDs(MapKeyElement n1, MapKeyElement n2) {
     return (*(int *) n1 - *(int *) n2);
 }

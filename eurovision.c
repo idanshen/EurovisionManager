@@ -1,9 +1,10 @@
 #include "eurovision.h"
-#include "mtm_map/map.h"
+#include "euroMap.h"
 #include "judge.h"
 #include "state.h"
 #include "list.h"
 #include "set.h"
+#include "map_utils.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -18,6 +19,26 @@
 typedef double Score;
 typedef int ID;
 static const Score score[10] = {12,10,8,7,6,5,4,3,2,1};
+
+/*
+ * enum that helps with comparing two strings lexicographically by using strcmp
+ */
+enum Size {FIRST_IS_GREATER=1,SAME_SIZE=0,SECOND_IS_GREATER=-1};
+static int sortStrings(ListElement str1,ListElement str2){
+    if(!str1|| !str2){
+        return LIST_NULL_ARGUMENT;
+    }
+    if(strcmp(str1,str2)>0){
+        return FIRST_IS_GREATER;
+
+    }
+    if(strcmp(str1,str2)==0){
+        return SAME_SIZE;
+    }
+    return SECOND_IS_GREATER;
+
+}
+
 
 struct eurovision_t{
     Map states;
@@ -141,23 +162,6 @@ static ListElement copyString(ListElement n) {
  */
 static void releaseString(ListElement n) {
     free(n);
-}
-
-//TODO@roy: add comment (and maybe move the enum to top of the page?)
-enum Size {FIRST_IS_GREATER=1,SAME_SIZE=0,SECOND_IS_GREATER=-1};
-static int sortStrings(ListElement str1,ListElement str2){
-    if(!str1|| !str2){
-        return LIST_NULL_ARGUMENT;
-    }
-    if(strcmp(str1,str2)>0){
-        return FIRST_IS_GREATER;
-
-    }
-    if(strcmp(str1,str2)==0){
-        return SAME_SIZE;
-    }
-    return SECOND_IS_GREATER;
-
 }
 
 /**
@@ -288,6 +292,9 @@ static char* combineStrings(char* str1, char* str2){
     int len1=(int)strlen(str1);
     int len2=(int)strlen(str2);
     char* new_str=malloc(sizeof(*new_str)*(len1+len2+5));
+    if(new_str==NULL){
+        return NULL;
+    }
     if(strcmp(str1,str2)>=0){
         strcpy(new_str,str2);
         strcat(new_str," - ");
@@ -494,7 +501,18 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
     return voters_score;
 }
 
-//TODO@roy: add comment
+/**
+ * updateNewStateVoteMap - update the voting list of a new added state so that
+ * it will have every state's ID in it. Each state's score is initialized to
+ * zero.
+ * @param states - a map object containing all the states in the eurovision
+ * @param new_state - pointer to a new state object
+ * @return
+ * MAP_SUCCESS the voting list was correctly updated.
+ * MAP_ITEM_DOES_NOT_EXIST new state isn't in the states map
+ * MAP_NULL_ARGUMENT a null argument was given
+ * MAP_OUT_OF_MEMORY can't allocate memory in new state's voting map
+ */
 static MapResult updateNewStateVoteMap(Map states,State new_state){
     MAP_FOREACH(ID*,iterator,states){
         MapResult res=addOrRemoveNewStateToVotes(new_state,iterator,ADD);
@@ -510,7 +528,21 @@ static MapResult updateNewStateVoteMap(Map states,State new_state){
     return MAP_SUCCESS;
 }
 
-//TODO@roy: add comment
+/**
+ * update each state's voting list. updates are made when a new state is added,
+ * at which case it will be added to every state's list with the score of zero,
+ * or when a state is taken out of the eurovision, at which case it will be
+ * deleted from every state's voting list.
+ * @param states - a map object containing all the eurovision states.
+ * @param stateId - the ID of the state that is added or removed.
+ * @param action - can be either ADD, when we are adding a new state, or REMOVE
+ * when we are removing an existing state.
+ * @return EUROVISION_SUCESS every state's voting list was correctly updated.
+ * EUROVISION_STATE_NOT_EXIST a certain state wasn't found in the states map,
+ * or the function was requested to delete a state which already doesn't exist.
+ * EUROVISION_OUT_OF_MEMORY problem with allocating memory in a state's voting
+ * list.
+ */
 static EurovisionResult updateStatesVoteMaps(Map states,ID stateId,
                                              int action){
     ID cur_ID=stateId;
@@ -540,6 +572,31 @@ static EurovisionResult updateStatesVoteMaps(Map states,ID stateId,
         }
     }
     return EUROVISION_SUCCESS;
+}
+/**
+ * combineFriendlyStates - put two friendly states into a list according to
+ * the format "State1 - State2". the states are lexicographically ordered.
+ * @param first_state - a pointer to State object
+ * @param second_state - another pointer to State object
+ * @param friendly_states - a list containing all the strings of friendly
+ * states according to the format
+ * @return  LIST_SUCCESS if the new string is put into the list
+ * LIST_OUT_OF_MEMORY problem allocating memory for the string or list
+ */
+static ListResult combineFriendlyStates(State first_state,State second_state
+        ,List friendly_states) {
+    char *state_name = stateGetName(first_state);
+    char *second_state_name = stateGetName(second_state);
+    char *str = combineStrings(state_name, second_state_name);
+    if (str == NULL) {
+        return LIST_OUT_OF_MEMORY;
+    }
+    ListResult add_res = listInsertLast(friendly_states, str);
+    if (add_res != LIST_SUCCESS) {
+        listDestroy(friendly_states);
+    }
+    free(str);
+    return add_res;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -747,16 +804,13 @@ List eurovisionRunAudienceFavorite(Eurovision eurovision){
     return winners_by_audience;
 }
 
-//TODO@roy: the function is 60 lines, split 10+ of them to different function
+//TODO: fucking move this away
+
 List eurovisionRunGetFriendlyStates(Eurovision eurovision){
     Map euro_states=eurovision->states;
     List friendly_states=listCreate(copyString,releaseString);
-    ID* second_top_ten_voted=NULL;
-    char* state_name=NULL;
-    char* second_state_name=NULL;
-    char* new_str=NULL;
+    ID* second_top_ten_voted=NULL,*top_ten_voted=NULL;
     MAP_FOREACH(ID*,iterator,euro_states){
-        ID* top_ten_voted;
         State current_state=mapGet(euro_states,iterator);
         if(!current_state){
             mapDestroy(euro_states);
@@ -787,17 +841,12 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
             return NULL;
         }
         if(second_top_ten_voted[0]==(*iterator)){
-            state_name=stateGetName(current_state);
-            second_state_name=stateGetName(examined_state);
-            new_str=combineStrings(state_name,second_state_name);
-            ListResult add_res=listInsertLast(friendly_states,new_str);
+            ListResult add_res=combineFriendlyStates(current_state,
+                    examined_state,friendly_states);
             if(add_res!=LIST_SUCCESS){
-                free(new_str);
                 mapDestroy(euro_states);
-                listDestroy(friendly_states);
                 return NULL;
             }
-            free(new_str);
         }
         free(top_ten_voted);
         free(second_top_ten_voted);
