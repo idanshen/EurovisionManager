@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include "mtm_map/map.h"
+#include "euroMap.h"
 #define ADD 1
 #define REMOVE -1
 #define EMPTY -1

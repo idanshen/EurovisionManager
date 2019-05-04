@@ -1,7 +1,7 @@
 #ifndef EUROVISION_C_STATE_H
 #define EUROVISION_C_STATE_H
 
-#include "mtm_map/map.h"
+#include "euroMap.h"
 
 /**
 * a implementation of State ADT

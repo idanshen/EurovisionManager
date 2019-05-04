@@ -1,10 +1,9 @@
 #include "eurovision.h"
-#include "mtm_map/map.h"
+#include "euroMap.h"
 #include "judge.h"
 #include "state.h"
 #include "list.h"
 #include "set.h"
-#include <math.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -385,7 +384,6 @@ static List mapToOrderedList(Map votes){
         max_key= mapMaxData(votes, compareScores);
         current_max_value=(Score*)mapGet(votes,max_key);
         ordered_winners[index]=*max_key;
-        //if(fabs(*current_max_value-last_max_value)<0.00001){ TODO: check if fabs necessary
         if(*current_max_value==last_max_value){
             same_num_of_votes_counter++;
             for(int i=index;i+same_num_of_votes_counter>index;i--){
