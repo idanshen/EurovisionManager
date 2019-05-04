@@ -3,8 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include "list.h"
-#include "eurovision.h"
+#include "../list.h"
+#include "../eurovision.h"
 #include "eurovisionTests.h"
 
 #define POINTS_OPTIONS_NUMBER 10
@@ -270,27 +270,27 @@ bool testRemoveVote() {
  * 9:  0.375  * 0.4 + 0.6667 * 0.6 = 0.55 (germany)
  */
 bool testRunContest() {
-    Eurovision eurovision = setupEurovision();
-    setupEurovisionStates(eurovision);
-    setupEurovisionJudges(eurovision);
-    setupEurovisionVotes2(eurovision);
+  Eurovision eurovision = setupEurovision();
+  setupEurovisionStates(eurovision);
+  setupEurovisionJudges(eurovision);
+  setupEurovisionVotes2(eurovision);
 
-    List ranking = eurovisionRunContest(eurovision, 40);
-    CHECK(listGetSize(ranking), 16);
-    char *current = (char*)listGetFirst(ranking);
-    CHECK(strcmp(current, "united kingdom"), 0);
-    current = (char*)listGetNext(ranking);
-    CHECK(strcmp(current, "moldova"), 0);
-    current = (char*)listGetNext(ranking);
-    CHECK(strcmp(current, "russia"), 0);
-    current = (char*)listGetNext(ranking);
-    CHECK(strcmp(current, "cyprus"), 0);
-    current = (char*)listGetNext(ranking);
-    CHECK(strcmp(current, "spain"), 0);
+  List ranking = eurovisionRunContest(eurovision, 40);
+  CHECK(listGetSize(ranking), 16);
+  char *current = (char*)listGetFirst(ranking);
+  CHECK(strcmp(current, "united kingdom"), 0);
+  current = (char*)listGetNext(ranking);
+  CHECK(strcmp(current, "moldova"), 0);
+  current = (char*)listGetNext(ranking);
+  CHECK(strcmp(current, "russia"), 0);
+  current = (char*)listGetNext(ranking);
+  CHECK(strcmp(current, "cyprus"), 0);
+  current = (char*)listGetNext(ranking);
+  CHECK(strcmp(current, "spain"), 0);
 
-    listDestroy(ranking);
-    eurovisionDestroy(eurovision);
-    return true;
+  listDestroy(ranking);
+  eurovisionDestroy(eurovision);
+  return true;
 }
 
 bool testRunAudienceFavorite() {
@@ -317,7 +317,6 @@ bool testRunAudienceFavorite() {
   return true;
 }
 
-
 /* friendlies: malta-croatia, russia-moldova */
 bool testRunGetFriendlyStates() {
   Eurovision eurovision = setupEurovision();
@@ -334,7 +333,6 @@ bool testRunGetFriendlyStates() {
   CHECK(strcmp(current, "moldova - russia"), 0);
 
   listDestroy(friendlies);
-
   eurovisionDestroy(eurovision);
   return true;
 }

@@ -11,8 +11,5 @@ bool testRemoveVote();
 bool testRunContest();
 bool testRunAudienceFavorite();
 bool testRunGetFriendlyStates();
-bool test1_runContest();
-bool test1_runAudience();
-bool test1_runFriendly();
 
 #endif /* EUROVISIONTESTS_H_ */

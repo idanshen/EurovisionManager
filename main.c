@@ -1,8 +1,6 @@
-#include "eurovision.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "eurovisionTests.h"
-
 
 #define TEST(t)                                                                \
   do {                                                                         \
@@ -25,4 +23,3 @@ int main(int argc, char *argv[]) {
     TEST(testRunGetFriendlyStates)
     return 0;
 }
-
