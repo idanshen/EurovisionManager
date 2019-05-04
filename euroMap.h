@@ -1,5 +1,5 @@
-#ifndef MAP_H_
-#define MAP_H_
+#ifndef EURO_MAP_H_
+#define EURO_MAP_H_
 
 
 #include <stdbool.h>
@@ -292,4 +292,4 @@ MapResult SetIterator(Map map,MapKeyElement spot);
         iterator ;\
         iterator = mapGetNext(map))
 
-#endif /* MAP_H_ */
+#endif /* EURO_MAP_H_ */

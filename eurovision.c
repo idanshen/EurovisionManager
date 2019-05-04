@@ -807,20 +807,6 @@ EurovisionResult eurovisionRemoveVote(Eurovision eurovision, ID stateGiver,
     return EUROVISION_OUT_OF_MEMORY;
 }
 
-<<<<<<< HEAD
-List eurovisionRunAudienceFavorite(Eurovision eurovision){
-    List winners_by_audience=eurovisionRunContest(eurovision, 100);
-    if (!winners_by_audience){
-        return NULL;
-    }
-    return winners_by_audience;
-}
-
-//TODO: fucking move this away
-
-=======
-//TODO@roy: the function is 60 lines, split 10+ of them to different function
->>>>>>> master
 List eurovisionRunGetFriendlyStates(Eurovision eurovision){
     Map euro_states=eurovision->states;
     List friendly_states=listCreate(copyString,releaseString);
