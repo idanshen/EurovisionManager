@@ -7,7 +7,7 @@
 /**
 * Generic Map Container
 *
-* Implements a map container type.
+* Special implementation of a map container type for the eurovision program.
 * The map has an internal iterator for external use. For all functions
 * where the state of the iterator after calling that function is not stated,
 * it is undefined. That is you cannot assume anything about it.
@@ -105,11 +105,11 @@ typedef int(*compareMapDataElements)(MapDataElement, MapDataElement);
 * 	NULL - if one of the parameters is NULL or allocations failed.
 * 	A new Map in case of success.
 */
-Map mapCreate(copyMapDataElements copyDataElement,
-              copyMapKeyElements copyKeyElement,
-              freeMapDataElements freeDataElement,
-              freeMapKeyElements freeKeyElement,
-              compareMapKeyElements compareKeyElements);
+Map euroMapCreate(copyMapDataElements copyDataElement,
+                  copyMapKeyElements copyKeyElement,
+                  freeMapDataElements freeDataElement,
+                  freeMapKeyElements freeKeyElement,
+                  compareMapKeyElements compareKeyElements);
 
 /**
 * mapDestroy: Deallocates an existing map. Clears all elements by using the
@@ -118,7 +118,7 @@ Map mapCreate(copyMapDataElements copyDataElement,
 * @param map - Target map to be deallocated. If map is NULL nothing will be
 * 		done
 */
-void mapDestroy(Map map);
+void EuroMapDestroy(Map map);
 
 /**
 * mapCopy: Creates a copy of target map.
@@ -129,7 +129,7 @@ void mapDestroy(Map map);
 * 	NULL if a NULL was sent or a memory allocation failed.
 * 	A Map containing the same elements as map otherwise.
 */
-Map mapCopy(Map map);
+Map EuroMapCopy(Map map);
 
 /**
 * mapGetSize: Returns the number of elements in a map
@@ -138,7 +138,7 @@ Map mapCopy(Map map);
 * 	-1 if a NULL pointer was sent.
 * 	Otherwise the number of elements in the map.
 */
-int mapGetSize(Map map);
+int EuroMapGetSize(Map map);
 
 /**
 * mapContains: Checks if a key element exists in the map. The key element will be
@@ -152,7 +152,7 @@ int mapGetSize(Map map);
 * 	false - if one or more of the inputs is null, or if the key element was not found.
 * 	true - if the key element was found in the map.
 */
-bool mapContains(Map map, MapKeyElement element);
+bool EuroMapContains(Map map, MapKeyElement element);
 
 /**
 *	mapPut: Gives a specified key a specific value.
@@ -170,7 +170,7 @@ bool mapContains(Map map, MapKeyElement element);
 * 	an element failed)
 * 	MAP_SUCCESS the paired elements had been inserted successfully
 */
-MapResult mapPut(Map map, MapKeyElement keyElement, MapDataElement dataElement);
+MapResult EuroMapPut(Map map, MapKeyElement keyElement, MapDataElement dataElement);
 
 /**
 *	mapGet: Returns the data associated with a specific key in the map.
@@ -183,7 +183,7 @@ we want to get.
 *  NULL if a NULL pointer was sent or if the map does not contain the requested key.
 * 	The data element associated with the key otherwise.
 */
-MapDataElement mapGet(Map map, MapKeyElement keyElement);
+MapDataElement EuroMapGet(Map map, MapKeyElement keyElement);
 
 /**
 * 	mapRemove: Removes a pair of key and data elements from the map. The elements
@@ -203,7 +203,7 @@ MapDataElement mapGet(Map map, MapKeyElement keyElement);
 *  MAP_ITEM_DOES_NOT_EXIST if an equal key item does not already exists in the map
 * 	MAP_SUCCESS the paired elements had been removed successfully
 */
-MapResult mapRemove(Map map, MapKeyElement keyElement);
+MapResult EuroMapRemove(Map map, MapKeyElement keyElement);
 
 /**
 *	mapGetFirst: Sets the internal iterator (also called current key element) to
@@ -218,7 +218,7 @@ MapResult mapRemove(Map map, MapKeyElement keyElement);
 * 	NULL if a NULL pointer was sent or the map is empty.
 * 	The first key element of the map otherwise
 */
-MapKeyElement mapGetFirst(Map map);
+MapKeyElement EuroMapGetFirst(Map map);
 
 /**
 *	mapGetNext: Advances the map iterator to the next key element and returns it.
@@ -229,7 +229,7 @@ MapKeyElement mapGetFirst(Map map);
 * 	or a NULL sent as argument
 * 	The next key element on the map in case of success
 */
-MapKeyElement mapGetNext(Map map);
+MapKeyElement EuroMapGetNext(Map map);
 
 
 /**
@@ -241,7 +241,7 @@ MapKeyElement mapGetNext(Map map);
 * 	MAP_NULL_ARGUMENT - if a NULL pointer was sent.
 * 	MAP_SUCCESS - Otherwise.
 */
-MapResult mapClear(Map map);
+MapResult EuroMapClear(Map map);
 
 /**
  * mapMaxData: find the element in the map with the biggest value and return
@@ -254,7 +254,7 @@ MapResult mapClear(Map map);
  *  NULL if the map is empty
  *  the key of the data element with the biggest value otherwise
  */
-MapKeyElement mapMaxData(Map map, compareMapDataElements compare);
+MapKeyElement EuroMapMaxData(Map map, compareMapDataElements compare);
 
 /**
  * mapCopyOnlyKeys: Creates a copy of target map but replace the data element
@@ -270,8 +270,8 @@ MapKeyElement mapMaxData(Map map, compareMapDataElements compare);
  * 	NULL if a NULL was sent or a memory allocation failed.
  * 	A Map containing the required elements as map otherwise.
  */
-Map mapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
-                    freeMapDataElements newFreeData, MapDataElement defaultValue);
+Map EuroMapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
+                        freeMapDataElements newFreeData, MapDataElement defaultValue);
 
 /**
  * SetIterator - set a map's iterator to a specific point according to a key
@@ -282,14 +282,14 @@ Map mapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
  * MAP_SUCCESS if the iterator points to spot
  * MAP_ITEM_DOES_NOT_EXIST if spot doesn't exist in map
  */
-MapResult SetIterator(Map map,MapKeyElement spot);
+MapResult EuroMapSetIterator(Map map, MapKeyElement spot);
 /*!
 * Macro for iterating over a map.
 * Declares a new iterator for the loop.
 */
 #define MAP_FOREACH(type, iterator, map) \
-    for(type iterator = (type) mapGetFirst(map) ; \
+    for(type iterator = (type) EuroMapGetFirst(map) ; \
         iterator ;\
-        iterator = mapGetNext(map))
+        iterator = EuroMapGetNext(map))
 
 #endif /* EURO_MAP_H_ */

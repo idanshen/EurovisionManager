@@ -42,11 +42,11 @@ static void freeNode(Map map, Node node){
                 /* main map functions */
 ////////////////////////////////////////////////////////////////
 
-Map mapCreate(copyMapDataElements copyDataElement,
-              copyMapKeyElements copyKeyElement,
-              freeMapDataElements freeDataElement,
-              freeMapKeyElements freeKeyElement,
-              compareMapKeyElements compareKeyElements) {
+Map euroMapCreate(copyMapDataElements copyDataElement,
+                  copyMapKeyElements copyKeyElement,
+                  freeMapDataElements freeDataElement,
+                  freeMapKeyElements freeKeyElement,
+                  compareMapKeyElements compareKeyElements) {
     if ((!copyDataElement) || (!copyKeyElement)
     || (!freeDataElement) || (!compareKeyElements)) {
         return NULL;
@@ -67,7 +67,7 @@ Map mapCreate(copyMapDataElements copyDataElement,
     return map;
 }
 
-int mapGetSize(Map map){
+int EuroMapGetSize(Map map){
     if (map==NULL){
         return ERROR;
     }
@@ -83,7 +83,7 @@ int mapGetSize(Map map){
     return counter;
 }
 
-bool mapContains(Map map, MapKeyElement element){
+bool EuroMapContains(Map map, MapKeyElement element){
     if(map==NULL || element==NULL){
         return false;
     }
@@ -106,27 +106,27 @@ bool mapContains(Map map, MapKeyElement element){
     return false;
 }
 
-MapResult mapClear(Map map){
+MapResult EuroMapClear(Map map){
     if(map==NULL){
         return MAP_NULL_ARGUMENT;
     }
     Node node=map->base;
     while(node!=NULL){
-        mapRemove(map,map->base->key);
+        EuroMapRemove(map, map->base->key);
         node=map->base;
     }
     return MAP_SUCCESS;
 }
 
-void mapDestroy(Map map){
+void EuroMapDestroy(Map map){
     if(map==NULL){
         return;
     }
-    mapClear(map);
+    EuroMapClear(map);
     free(map);
 }
 
-Map mapCopy(Map map){
+Map EuroMapCopy(Map map){
     if(map==NULL) {
         return NULL;
     }
@@ -136,17 +136,17 @@ Map mapCopy(Map map){
     freeMapDataElements newFreeData=map->freeData;
     freeMapKeyElements newFreeKey=map->freeKey;
     compareMapKeyElements newCompareKey=map->compareKey;
-    Map new_map=mapCreate(newCopyData,newCopyKey,newFreeData,newFreeKey,
-                          newCompareKey);
+    Map new_map= euroMapCreate(newCopyData, newCopyKey, newFreeData, newFreeKey,
+                               newCompareKey);
     MAP_FOREACH(MapKeyElement, iterator, map){
-        MapDataElement data_ptr=mapGet(map,iterator);
-        mapPut(new_map,iterator,data_ptr);
+        MapDataElement data_ptr= EuroMapGet(map, iterator);
+        EuroMapPut(new_map, iterator, data_ptr);
     }
 
     return new_map;
 }
 
-MapResult mapPut(Map map, MapKeyElement keyElement, MapDataElement dataElement){
+MapResult EuroMapPut(Map map, MapKeyElement keyElement, MapDataElement dataElement){
     if((!keyElement) || (!dataElement)|| (!map)){
         return MAP_NULL_ARGUMENT;
     }
@@ -196,7 +196,7 @@ MapResult mapPut(Map map, MapKeyElement keyElement, MapDataElement dataElement){
     return MAP_SUCCESS;
 }
 
-MapDataElement mapGet(Map map, MapKeyElement keyElement){
+MapDataElement EuroMapGet(Map map, MapKeyElement keyElement){
     if((!keyElement) || (!map)){
         return NULL;
     }
@@ -213,7 +213,7 @@ MapDataElement mapGet(Map map, MapKeyElement keyElement){
     return NULL;
 }
 
-MapResult mapRemove(Map map, MapKeyElement keyElement){
+MapResult EuroMapRemove(Map map, MapKeyElement keyElement){
     if((!keyElement) || (!map)){
         return MAP_NULL_ARGUMENT;
     }
@@ -243,7 +243,7 @@ MapResult mapRemove(Map map, MapKeyElement keyElement){
     return MAP_ITEM_DOES_NOT_EXIST;
 }
 
-MapKeyElement mapGetFirst(Map map){
+MapKeyElement EuroMapGetFirst(Map map){
     if (!map) {
         return NULL;
     }
@@ -254,7 +254,7 @@ MapKeyElement mapGetFirst(Map map){
     return map->node_iterator->key;
 }
 
-MapKeyElement mapGetNext(Map map){
+MapKeyElement EuroMapGetNext(Map map){
     if (!map) {
         return NULL;
     }
@@ -265,15 +265,15 @@ MapKeyElement mapGetNext(Map map){
     return map->node_iterator->key;
 }
 
-MapKeyElement mapMaxData(Map map, compareMapDataElements compare){
+MapKeyElement EuroMapMaxData(Map map, compareMapDataElements compare){
     MapDataElement current;
-    MapKeyElement max_key = mapGetFirst(map);
-    MapDataElement max = mapGet(map, max_key);
+    MapKeyElement max_key = EuroMapGetFirst(map);
+    MapDataElement max = EuroMapGet(map, max_key);
     if (max==NULL){
         return NULL;
     }
     MAP_FOREACH(MapKeyElement, iterator, map){
-        current = mapGet(map,iterator);
+        current = EuroMapGet(map, iterator);
         if (compare(current,max)>0){
             max = current;
             max_key = iterator;
@@ -283,30 +283,30 @@ MapKeyElement mapMaxData(Map map, compareMapDataElements compare){
 }
 
 
-Map mapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
-        freeMapDataElements newFreeData, MapDataElement defaultValue){
+Map EuroMapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
+                        freeMapDataElements newFreeData, MapDataElement defaultValue){
     if(map==NULL) {
         return NULL;
     }
     copyMapKeyElements newCopyKey=map->copyKey;
     freeMapKeyElements newFreeKey=map->freeKey;
     compareMapKeyElements newCompareKey=map->compareKey;
-    Map new_map=mapCreate(newCopyData,newCopyKey,newFreeData,newFreeKey,
-                          newCompareKey);
+    Map new_map= euroMapCreate(newCopyData, newCopyKey, newFreeData, newFreeKey,
+                               newCompareKey);
 
     Node next_ptr=map->base;
     if(next_ptr==NULL){
         return new_map;
     }
     while(next_ptr!=NULL){
-        mapPut(new_map,next_ptr->key,defaultValue);
+        EuroMapPut(new_map, next_ptr->key, defaultValue);
         next_ptr=next_ptr->next;
     }
     return new_map;
 }
 
-MapResult SetIterator(Map map,MapKeyElement spot){
-    MAP_FOREACH(MapKeyElement,iterator,map){
+MapResult EuroMapSetIterator(Map map, MapKeyElement spot){
+    MAP_FOREACH(MapKeyElement, iterator, map){
         if(map->compareKey(iterator,spot)==0){
             return MAP_SUCCESS;
         }

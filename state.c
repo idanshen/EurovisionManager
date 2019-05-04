@@ -84,8 +84,8 @@ State createState(int stateId,const char* stateName,const char* songName){
     new_state->ID = stateId;
     new_state->name = new_name;
     new_state->song = new_song;
-    Map new_map=mapCreate(copyVotesOrID,copyVotesOrID,releaseVotesOrID,
-            releaseVotesOrID,compareIDs);
+    Map new_map= euroMapCreate(copyVotesOrID, copyVotesOrID, releaseVotesOrID,
+                               releaseVotesOrID, compareIDs);
     if (new_map==NULL){
         free(new_state);
         free(new_name);
@@ -114,7 +114,7 @@ State stateCopy(State state){
 void deleteState(State state){
     free(state->song);
     free(state->name);
-    mapDestroy(state->votes);
+    EuroMapDestroy(state->votes);
     free(state);
 }
 
@@ -124,12 +124,12 @@ MapResult addOrRemoveNewStateToVotes(State state,int * ID,int action){
     }
     if(action==ADD) {
         int new_num_of_votes = 0;
-        if (mapPut(state->votes, ID, &new_num_of_votes) != MAP_SUCCESS) {
+        if (EuroMapPut(state->votes, ID, &new_num_of_votes) != MAP_SUCCESS) {
             return MAP_OUT_OF_MEMORY;
         }
     }
     if(action==REMOVE){
-        if(mapRemove(state->votes,ID)!=MAP_SUCCESS){
+        if(EuroMapRemove(state->votes, ID)!=MAP_SUCCESS){
             return MAP_ITEM_DOES_NOT_EXIST;
         }
     }
@@ -150,12 +150,12 @@ int* stateGetTopTen(State state){
     if (!votes){
         return NULL;
     }
-    Map state_votes = mapCopy(getVotesList(state));
+    Map state_votes = EuroMapCopy(getVotesList(state));
     int * max_key;
     int * current_max_value;
-    while((mapGetSize(state_votes)>0)&&(index<10)){
-        max_key = mapMaxData(state_votes,compareIDs);
-        current_max_value = mapGet(state_votes,max_key);
+    while((EuroMapGetSize(state_votes)>0)&&(index<10)){
+        max_key = EuroMapMaxData(state_votes, compareIDs);
+        current_max_value = EuroMapGet(state_votes, max_key);
         votes[index]=*max_key;
         if(*current_max_value==0){
             break;
@@ -174,9 +174,9 @@ int* stateGetTopTen(State state){
             same_num_of_votes_counter=0;
         }
         last_max_value=*current_max_value;
-        MapResult result=mapRemove(state_votes,max_key);
+        MapResult result= EuroMapRemove(state_votes, max_key);
         if(result!=MAP_SUCCESS){
-            mapDestroy(state_votes);
+            EuroMapDestroy(state_votes);
             free(votes);
             return NULL;
         }
@@ -187,7 +187,7 @@ int* stateGetTopTen(State state){
             votes[index+j] = EMPTY;
         }
     }
-    mapDestroy(state_votes);
+    EuroMapDestroy(state_votes);
     return votes;
 }
 

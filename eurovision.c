@@ -240,7 +240,7 @@ EurovisionResult judgeRemoveByVote(Eurovision eurovision, ID stateId){
     Set to_remove = setCreate(copyID,releaseID,compareIDs);
     Judge cur_judge;
     MAP_FOREACH(ID*, iterator, eurovision->judges){
-        cur_judge = (Judge)mapGet(eurovision->judges, iterator);
+        cur_judge = (Judge) EuroMapGet(eurovision->judges, iterator);
         for (int i = 0; i<10; i++){
             if (judgeGetVotes(cur_judge)[i]==stateId){
                 setAdd(to_remove,(SetElement)iterator);
@@ -274,7 +274,7 @@ static EurovisionResult checkResults(int* results, Map states){
         if (results[i]<0){
             return EUROVISION_INVALID_ID;
         }
-        if (!mapGet(states,&results[i])){
+        if (!EuroMapGet(states, &results[i])){
             return EUROVISION_STATE_NOT_EXIST;
         }
         for (int j=0; j<10;j++){
@@ -327,7 +327,7 @@ static List keyListToNameList(List IDs_list, Map states_map){
     State cur_state;
     char* cur_name;
     LIST_FOREACH(ID*, iterator, IDs_list){
-        cur_state = mapGet(states_map, iterator);
+        cur_state = EuroMapGet(states_map, iterator);
         if (!cur_state){
             free(name_list);
             free(cur_state);
@@ -379,16 +379,16 @@ static List mapToOrderedList(Map votes){
     int same_num_of_votes_counter=0;
     Score last_max_value=-1;
     int index=0;
-    int size_of_votes=mapGetSize(votes);
+    int size_of_votes= EuroMapGetSize(votes);
     ID* ordered_winners=(int*)malloc(sizeof(int)*size_of_votes);
     if(ordered_winners==NULL){
         return NULL;
     }
     ID * max_key;
     Score * current_max_value;
-    while(mapGetSize(votes)!=0){
-        max_key= mapMaxData(votes, compareScores);
-        current_max_value=(Score*)mapGet(votes,max_key);
+    while(EuroMapGetSize(votes)!=0){
+        max_key= EuroMapMaxData(votes, compareScores);
+        current_max_value=(Score*) EuroMapGet(votes, max_key);
         ordered_winners[index]=*max_key;
         if(*current_max_value==last_max_value){
             same_num_of_votes_counter++;
@@ -404,7 +404,7 @@ static List mapToOrderedList(Map votes){
             same_num_of_votes_counter=0;
         }
         last_max_value=*current_max_value;
-        MapResult result=mapRemove(votes,max_key);
+        MapResult result= EuroMapRemove(votes, max_key);
         if(result!=MAP_SUCCESS){
             free(ordered_winners);
             return NULL;
@@ -434,9 +434,9 @@ static EurovisionResult addScoreFromVote(Map voters_score, int* votes){
     Score score_placeholder;
     for (int i=0; i<10;i++){
         if (votes[i]!=EMPTY) {
-            score_placeholder = *(Score *)mapGet(voters_score, &votes[i]);
+            score_placeholder = *(Score *) EuroMapGet(voters_score, &votes[i]);
             score_placeholder = score_placeholder + score[i];
-            MapResult res = mapPut(voters_score, &votes[i], &score_placeholder);
+            MapResult res = EuroMapPut(voters_score, &votes[i], &score_placeholder);
             if (res != MAP_SUCCESS) {
                 return EUROVISION_OUT_OF_MEMORY;
             }
@@ -466,12 +466,12 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
         voters = &eurovision->states;
     }
     Score score_placeholder, default_value = DEFAULT_VALUE;
-    double number_of_voters = (double)mapGetSize(*voters);
+    double number_of_voters = (double) EuroMapGetSize(*voters);
     if(voters_flag==STATES){
         number_of_voters=number_of_voters-1;
     }
-    Map voters_score = mapCopyOnlyKeys(eurovision->states, copyScore,
-                                       releaseScore, &default_value);
+    Map voters_score = EuroMapCopyOnlyKeys(eurovision->states, copyScore,
+                                           releaseScore, &default_value);
     if (!voters_score){
         free(voters_score);
         return NULL;
@@ -483,17 +483,17 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
         int* votes;
         if (voters_flag==JUDGES){
             Judge cur_judge;
-            cur_judge = mapGet(eurovision->judges, iterator);
+            cur_judge = EuroMapGet(eurovision->judges, iterator);
             votes = judgeGetVotes(cur_judge);
         }
         else{
             State cur_state;
-            cur_state = mapGet(eurovision->states, iterator);
+            cur_state = EuroMapGet(eurovision->states, iterator);
             votes = stateGetTopTen(cur_state);
         }
         EurovisionResult res = addScoreFromVote(voters_score, votes);
         if (res!=EUROVISION_SUCCESS){
-            mapDestroy(voters_score);
+            EuroMapDestroy(voters_score);
             return NULL;
         }
         if(voters_flag==STATES){
@@ -501,11 +501,11 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
         }
     }
     MAP_FOREACH(MapKeyElement, iterator, eurovision->states){
-        score_placeholder = *(Score*)mapGet(voters_score,iterator);
+        score_placeholder = *(Score*) EuroMapGet(voters_score, iterator);
         score_placeholder = score_placeholder/number_of_voters;
-        MapResult res = mapPut(voters_score, iterator, &score_placeholder);
+        MapResult res = EuroMapPut(voters_score, iterator, &score_placeholder);
         if (res!=MAP_SUCCESS){
-            mapDestroy(voters_score);
+            EuroMapDestroy(voters_score);
             return NULL;
         }
     }
@@ -525,14 +525,14 @@ static Map ScoreCalculate(Eurovision eurovision, int voters_flag){
  * MAP_OUT_OF_MEMORY can't allocate memory in new state's voting map
  */
 static MapResult updateNewStateVoteMap(Map states,State new_state){
-    MAP_FOREACH(ID*,iterator,states){
+    MAP_FOREACH(ID*, iterator, states){
         MapResult res=addOrRemoveNewStateToVotes(new_state,iterator,ADD);
         if(res!=MAP_SUCCESS){
             return res;
         }
     }
     ID new_state_ID=stateGetID(new_state);
-    MapResult res=SetIterator(states,&new_state_ID);
+    MapResult res= EuroMapSetIterator(states, &new_state_ID);
     if(res!=MAP_SUCCESS){
         return MAP_ITEM_DOES_NOT_EXIST;
     }
@@ -557,9 +557,9 @@ static MapResult updateNewStateVoteMap(Map states,State new_state){
 static EurovisionResult updateStatesVoteMaps(Map states,ID stateId,
                                              int action){
     ID cur_ID=stateId;
-    int num_of_states=mapGetSize(states);
-    MAP_FOREACH(ID*,IDiterator,states){
-        State current_state=mapGet(states,IDiterator);
+    int num_of_states= EuroMapGetSize(states);
+    MAP_FOREACH(ID*, IDiterator, states){
+        State current_state= EuroMapGet(states, IDiterator);
         if(current_state==NULL){
             return EUROVISION_STATE_NOT_EXIST;
         }
@@ -616,12 +616,12 @@ static ListResult combineFriendlyStates(State first_state,State second_state
 
 Eurovision eurovisionCreate(){
     Map judges_map=
-            mapCreate(copyJudge,copyID,releaseJudge,releaseID,compareIDs);
+            euroMapCreate(copyJudge, copyID, releaseJudge, releaseID, compareIDs);
     if(judges_map==NULL){
         return NULL;
     }
     Map states_map=
-            mapCreate(copyState,copyID,releaseState,releaseID,compareIDs);
+            euroMapCreate(copyState, copyID, releaseState, releaseID, compareIDs);
     if(states_map==NULL){
         return NULL;
     }
@@ -635,8 +635,8 @@ Eurovision eurovisionCreate(){
 }
 
 void eurovisionDestroy(Eurovision eurovision){
-    mapDestroy(eurovision->states);
-    mapDestroy(eurovision->judges);
+    EuroMapDestroy(eurovision->states);
+    EuroMapDestroy(eurovision->judges);
     free(eurovision);
 }
 
@@ -652,14 +652,14 @@ EurovisionResult eurovisionAddState(Eurovision eurovision, ID stateId,
     if(!checkName(stateName)||!checkName(songName)){
         return EUROVISION_INVALID_NAME;
     }
-    if(mapContains(eurovision->states,&stateId)){
+    if(EuroMapContains(eurovision->states, &stateId)){
         return EUROVISION_STATE_ALREADY_EXIST;
     }
     State new_state=createState(stateId,stateName,songName);
     if(!new_state){
         return EUROVISION_OUT_OF_MEMORY;
     }
-    MapResult result=mapPut(eurovision->states,&stateId,new_state);
+    MapResult result= EuroMapPut(eurovision->states, &stateId, new_state);
     if(result==MAP_OUT_OF_MEMORY) {
         deleteState(new_state);
         return EUROVISION_OUT_OF_MEMORY;
@@ -683,7 +683,7 @@ EurovisionResult eurovisionRemoveState(Eurovision eurovision, ID stateId){
     if(!eurovision){
         return EUROVISION_NULL_ARGUMENT;
     }
-    MapResult result=mapRemove(eurovision->states,&stateId);
+    MapResult result= EuroMapRemove(eurovision->states, &stateId);
     if(result==MAP_ITEM_DOES_NOT_EXIST){
         return EUROVISION_STATE_NOT_EXIST;
     }
@@ -710,7 +710,7 @@ EurovisionResult eurovisionAddJudge(Eurovision eurovision, ID judgeId,
     if(res!=EUROVISION_SUCCESS){
         return res;
     }
-    if(mapContains(eurovision->judges,&judgeId)){
+    if(EuroMapContains(eurovision->judges, &judgeId)){
         return EUROVISION_JUDGE_ALREADY_EXIST;
     }
     if(!checkName(judgeName)){
@@ -720,7 +720,7 @@ EurovisionResult eurovisionAddJudge(Eurovision eurovision, ID judgeId,
     if(!new_judge){
         return EUROVISION_OUT_OF_MEMORY;
     }
-    MapResult result = mapPut(eurovision->judges, &judgeId, new_judge);
+    MapResult result = EuroMapPut(eurovision->judges, &judgeId, new_judge);
     if(result==MAP_OUT_OF_MEMORY) {
         return EUROVISION_OUT_OF_MEMORY;
     }
@@ -735,7 +735,7 @@ EurovisionResult eurovisionRemoveJudge(Eurovision eurovision, ID judgeId){
     if(judgeId<0){
         return EUROVISION_INVALID_ID;
     }
-    MapResult result = mapRemove(eurovision->judges,&judgeId);
+    MapResult result = EuroMapRemove(eurovision->judges, &judgeId);
     if (result == MAP_ITEM_DOES_NOT_EXIST){
         return EUROVISION_JUDGE_NOT_EXIST;
     }
@@ -755,11 +755,11 @@ EurovisionResult eurovisionAddVote(Eurovision eurovision, ID stateGiver,
     if((stateGiver<0) || (stateTaker<0)){
         return EUROVISION_INVALID_ID;
     }
-    State giver_state = mapGet(eurovision->states,&stateGiver);
+    State giver_state = EuroMapGet(eurovision->states, &stateGiver);
     if (!giver_state){
         return EUROVISION_STATE_NOT_EXIST;
     }
-    State taker_state = mapGet(eurovision->states,&stateTaker);
+    State taker_state = EuroMapGet(eurovision->states, &stateTaker);
     if (!taker_state){
         return EUROVISION_STATE_NOT_EXIST;
     }
@@ -767,9 +767,9 @@ EurovisionResult eurovisionAddVote(Eurovision eurovision, ID stateGiver,
         return EUROVISION_SAME_STATE;
     }
     Map state_voting_list=getVotesList(giver_state);
-    int curr_vote = *(int*)mapGet(state_voting_list,&stateTaker);
+    int curr_vote = *(int*) EuroMapGet(state_voting_list, &stateTaker);
     curr_vote++;
-    MapResult result = mapPut(state_voting_list,&stateTaker, &curr_vote);
+    MapResult result = EuroMapPut(state_voting_list, &stateTaker, &curr_vote);
     if (result==MAP_SUCCESS){
         return EUROVISION_SUCCESS;
     }
@@ -784,11 +784,11 @@ EurovisionResult eurovisionRemoveVote(Eurovision eurovision, ID stateGiver,
     if((stateGiver<0) || (stateTaker<0)){
         return EUROVISION_INVALID_ID;
     }
-    State giver_state = mapGet(eurovision->states,&stateGiver);
+    State giver_state = EuroMapGet(eurovision->states, &stateGiver);
     if (!giver_state){
         return EUROVISION_STATE_NOT_EXIST;
     }
-    State taker_state = mapGet(eurovision->states,&stateTaker);
+    State taker_state = EuroMapGet(eurovision->states, &stateTaker);
     if (!taker_state){
         return EUROVISION_STATE_NOT_EXIST;
     }
@@ -796,11 +796,11 @@ EurovisionResult eurovisionRemoveVote(Eurovision eurovision, ID stateGiver,
         return EUROVISION_SAME_STATE;
     }
     Map state_voting_list=getVotesList(giver_state);
-    int curr_vote = *(int*)mapGet(state_voting_list,&stateTaker);
+    int curr_vote = *(int*) EuroMapGet(state_voting_list, &stateTaker);
     if (curr_vote>0){
         curr_vote--;
     }
-    MapResult result = mapPut(state_voting_list,&stateTaker, &curr_vote);
+    MapResult result = EuroMapPut(state_voting_list, &stateTaker, &curr_vote);
     if (result==MAP_SUCCESS){
         return EUROVISION_SUCCESS;
     }
@@ -811,16 +811,16 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
     Map euro_states=eurovision->states;
     List friendly_states=listCreate(copyString,releaseString);
     ID* second_top_ten_voted=NULL,*top_ten_voted=NULL;
-    MAP_FOREACH(ID*,iterator,euro_states){
-        State current_state=mapGet(euro_states,iterator);
+    MAP_FOREACH(ID*, iterator, euro_states){
+        State current_state= EuroMapGet(euro_states, iterator);
         if(!current_state){
-            mapDestroy(euro_states);
+            EuroMapDestroy(euro_states);
             listDestroy(friendly_states);
             return NULL;
         }
         top_ten_voted=stateGetTopTen(current_state);
         if(!top_ten_voted){
-            mapDestroy(euro_states);
+            EuroMapDestroy(euro_states);
             listDestroy(friendly_states);
             return NULL;
         }
@@ -828,16 +828,16 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
             free(top_ten_voted);
             continue;
         }
-        State examined_state=mapGet(euro_states,&top_ten_voted[0]);
+        State examined_state= EuroMapGet(euro_states, &top_ten_voted[0]);
         if(!examined_state){
-            mapDestroy(euro_states);
+            EuroMapDestroy(euro_states);
             listDestroy(friendly_states);
             return NULL;
         }
         second_top_ten_voted=stateGetTopTen(examined_state);
         if(!second_top_ten_voted){
             free(top_ten_voted);
-            mapDestroy(euro_states);
+            EuroMapDestroy(euro_states);
             listDestroy(friendly_states);
             return NULL;
         }
@@ -845,7 +845,7 @@ List eurovisionRunGetFriendlyStates(Eurovision eurovision){
             ListResult add_res=combineFriendlyStates(current_state,
                     examined_state,friendly_states);
             if(add_res!=LIST_SUCCESS){
-                mapDestroy(euro_states);
+                EuroMapDestroy(euro_states);
                 return NULL;
             }
         }
@@ -870,27 +870,27 @@ List eurovisionRunContestMain(Eurovision eurovision, int audiencePercent){
     Map states_score = ScoreCalculate(eurovision, STATES);
     Score default_value = DEFAULT_VALUE;
     Score judges_score_placeholder, states_score_placeholder, score;
-    Map overall_score = mapCopyOnlyKeys(judges_score, copyScore,
-                                        releaseScore, &default_value);
+    Map overall_score = EuroMapCopyOnlyKeys(judges_score, copyScore,
+                                            releaseScore, &default_value);
     if (!overall_score){
         free(overall_score);
         return NULL;
     }
     MAP_FOREACH(MapKeyElement, iterator, states_score){
-        judges_score_placeholder = *(Score*)mapGet(judges_score, iterator);
-        states_score_placeholder = *(Score*)mapGet(states_score, iterator);
+        judges_score_placeholder = *(Score*) EuroMapGet(judges_score, iterator);
+        states_score_placeholder = *(Score*) EuroMapGet(states_score, iterator);
         score = ((Score)audiencePercent/100)*states_score_placeholder +
                 (1-((Score)audiencePercent/100))*judges_score_placeholder;
-        MapResult res = mapPut(overall_score,iterator,&score);
+        MapResult res = EuroMapPut(overall_score, iterator, &score);
         if (res!=MAP_SUCCESS){
-            mapDestroy(judges_score);
-            mapDestroy(states_score);
-            mapDestroy(overall_score);
+            EuroMapDestroy(judges_score);
+            EuroMapDestroy(states_score);
+            EuroMapDestroy(overall_score);
             return NULL;
         }
     }
-    mapDestroy(judges_score);
-    mapDestroy(states_score);
+    EuroMapDestroy(judges_score);
+    EuroMapDestroy(states_score);
     List final_results_keys = mapToOrderedList(overall_score);
     List final_results_names = keyListToNameList(final_results_keys,
             eurovision->states);
@@ -899,7 +899,7 @@ List eurovisionRunContestMain(Eurovision eurovision, int audiencePercent){
         listDestroy(final_results_names);
         return NULL;
     }
-    mapDestroy(overall_score);
+    EuroMapDestroy(overall_score);
     return final_results_names;
 }
 
