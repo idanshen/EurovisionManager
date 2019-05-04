@@ -1,4 +1,4 @@
-#include "euroMap.h"
+#include "map.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -263,53 +263,4 @@ MapKeyElement mapGetNext(Map map){
     }
     map->node_iterator = map->node_iterator->next;
     return map->node_iterator->key;
-}
-
-MapKeyElement mapMaxData(Map map, compareMapDataElements compare){
-    MapDataElement current;
-    MapKeyElement max_key = mapGetFirst(map);
-    MapDataElement max = mapGet(map, max_key);
-    if (max==NULL){
-        return NULL;
-    }
-    MAP_FOREACH(MapKeyElement, iterator, map){
-        current = mapGet(map,iterator);
-        if (compare(current,max)>0){
-            max = current;
-            max_key = iterator;
-        }
-    }
-    return max_key;
-}
-
-
-Map mapCopyOnlyKeys(Map map, copyMapDataElements newCopyData,
-        freeMapDataElements newFreeData, MapDataElement defaultValue){
-    if(map==NULL) {
-        return NULL;
-    }
-    copyMapKeyElements newCopyKey=map->copyKey;
-    freeMapKeyElements newFreeKey=map->freeKey;
-    compareMapKeyElements newCompareKey=map->compareKey;
-    Map new_map=mapCreate(newCopyData,newCopyKey,newFreeData,newFreeKey,
-                          newCompareKey);
-
-    Node next_ptr=map->base;
-    if(next_ptr==NULL){
-        return new_map;
-    }
-    while(next_ptr!=NULL){
-        mapPut(new_map,next_ptr->key,defaultValue);
-        next_ptr=next_ptr->next;
-    }
-    return new_map;
-}
-
-MapResult SetIterator(Map map,MapKeyElement spot){
-    MAP_FOREACH(MapKeyElement,iterator,map){
-        if(map->compareKey(iterator,spot)==0){
-            return MAP_SUCCESS;
-        }
-    }
-    return MAP_ITEM_DOES_NOT_EXIST;
 }
